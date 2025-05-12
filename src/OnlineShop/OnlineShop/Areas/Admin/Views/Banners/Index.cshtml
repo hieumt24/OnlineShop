@@ -1,0 +1,44 @@
+@model IEnumerable<OnlineShop.Models.Db.Banner>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Create New</a>
+</p>
+
+<!-- Table Design -->
+<table class="table table-striped table-hover table-bordered">
+    <thead class="thead-dark">
+    <tr>
+        <th>@Html.DisplayNameFor(model => model.Title)</th>
+        <th>@Html.DisplayNameFor(model => model.SubTitle)</th>
+        <th>@Html.DisplayNameFor(model => model.ImageName)</th>
+        <th>@Html.DisplayNameFor(model => model.Priority)</th>
+        <th>@Html.DisplayNameFor(model => model.Link)</th>
+        <th>@Html.DisplayNameFor(model => model.Position)</th>
+        <th class="text-center">Actions</th> <!-- Added to center-align the actions -->
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Title)</td>
+            <td>@Html.DisplayFor(modelItem => item.SubTitle)</td>
+            <td>@Html.DisplayFor(modelItem => item.ImageName)</td>
+            <td>@Html.DisplayFor(modelItem => item.Priority)</td>
+            <td>@Html.DisplayFor(modelItem => item.Link)</td>
+            <td>@Html.DisplayFor(modelItem => item.Position)</td>
+            <td class="text-center">
+                <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                <a class="btn btn-info btn-sm" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

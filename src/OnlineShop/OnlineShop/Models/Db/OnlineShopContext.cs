@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Models.Db;
 
-namespace OnlineShop.Context;
+namespace OnlineShop.Models.Db;
 
 public partial class OnlineShopContext : DbContext
 {
@@ -16,6 +16,8 @@ public partial class OnlineShopContext : DbContext
     {
     }
 
+    public virtual DbSet<Banner> Banners { get; set; }
+
     public virtual DbSet<Menu> Menus { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -24,6 +26,20 @@ public partial class OnlineShopContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Banner>(entity =>
+        {
+            entity.ToTable("Banner");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.ImageName)
+                .HasMaxLength(50)
+                .IsFixedLength();
+            entity.Property(e => e.Link).HasMaxLength(100);
+            entity.Property(e => e.Position).HasMaxLength(50);
+            entity.Property(e => e.SubTitle).HasMaxLength(1000);
+            entity.Property(e => e.Title).HasMaxLength(200);
+        });
+
         modelBuilder.Entity<Menu>(entity =>
         {
             entity.Property(e => e.Link).HasMaxLength(300);

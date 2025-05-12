@@ -1,26 +1,31 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Models.Db;
 
 namespace OnlineShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class MenusController : Controller
+    public class BannersController : Controller
     {
         private readonly OnlineShopContext _context;
 
-        public MenusController(OnlineShopContext context)
+        public BannersController(OnlineShopContext context)
         {
             _context = context;
         }
 
-        // GET: Admin/Menu
+        // GET: Admin/Banners
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Menus.ToListAsync());
+            return View(await _context.Banners.ToListAsync());
         }
 
-        // GET: Admin/Menu/Details/5
+        // GET: Admin/Banners/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -28,40 +33,53 @@ namespace OnlineShop.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var menu = await _context.Menus
+            var banner = await _context.Banners
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (menu == null)
+            if (banner == null)
             {
                 return NotFound();
             }
 
-            return View(menu);
+            return View(banner);
         }
 
-        // GET: Admin/Menu/Create
+        // GET: Admin/Banners/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Admin/Menu/Create
+        // POST: Admin/Banners/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,MenuTitle,Link,Type")] Menu menu)
+        public async Task<IActionResult> Create([Bind("Id,Title,SubTitle,ImageName,Priority,Link,Position")] Banner banner, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(menu);
+                //================save image======================
+                if (ImageFile != null)
+                {
+                    banner.ImageName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(ImageFile.FileName);
+                    string fn;
+                    fn = Directory.GetCurrentDirectory();
+                    string ImagePath = Path.Combine(fn + "\\wwwroot\\images\\banners\\" + banner.ImageName);
+
+                    using (var stream = new FileStream(ImagePath, FileMode.Create))
+                    {
+                        ImageFile.CopyTo(stream);
+                    }
+                }
+                //===============================================
+                _context.Add(banner);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(menu);
+            return View(banner);
         }
 
-        // GET: Admin/Menu/Edit/5
+        // GET: Admin/Banners/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -69,23 +87,22 @@ namespace OnlineShop.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var menu = await _context.Menus.FindAsync(id);
-            if (menu == null)
+            var banner = await _context.Banners.FindAsync(id);
+            if (banner == null)
             {
                 return NotFound();
             }
-
-            return View(menu);
+            return View(banner);
         }
 
-        // POST: Admin/Menu/Edit/5
+        // POST: Admin/Banners/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,MenuTitle,Link,Type")] Menu menu)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,SubTitle,ImageName,Priority,Link,Position")] Banner banner)
         {
-            if (id != menu.Id)
+            if (id != banner.Id)
             {
                 return NotFound();
             }
@@ -94,12 +111,12 @@ namespace OnlineShop.Areas.Admin.Controllers
             {
                 try
                 {
-                    _context.Update(menu);
+                    _context.Update(banner);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MenuExists(menu.Id))
+                    if (!BannerExists(banner.Id))
                     {
                         return NotFound();
                     }
@@ -108,14 +125,12 @@ namespace OnlineShop.Areas.Admin.Controllers
                         throw;
                     }
                 }
-
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(menu);
+            return View(banner);
         }
 
-        // GET: Admin/Menu/Delete/5
+        // GET: Admin/Banners/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,34 +138,34 @@ namespace OnlineShop.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var menu = await _context.Menus
+            var banner = await _context.Banners
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (menu == null)
+            if (banner == null)
             {
                 return NotFound();
             }
 
-            return View(menu);
+            return View(banner);
         }
 
-        // POST: Admin/Menu/Delete/5
+        // POST: Admin/Banners/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var menu = await _context.Menus.FindAsync(id);
-            if (menu != null)
+            var banner = await _context.Banners.FindAsync(id);
+            if (banner != null)
             {
-                _context.Menus.Remove(menu);
+                _context.Banners.Remove(banner);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MenuExists(int id)
+        private bool BannerExists(int id)
         {
-            return _context.Menus.Any(e => e.Id == id);
+            return _context.Banners.Any(e => e.Id == id);
         }
     }
 }

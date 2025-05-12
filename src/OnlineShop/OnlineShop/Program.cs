@@ -1,4 +1,6 @@
-using OnlineShop.Context;
+// using OnlineShop.Context;
+
+using OnlineShop.Models.Db;
 
 var builder = WebApplication.CreateBuilder(args);
 
