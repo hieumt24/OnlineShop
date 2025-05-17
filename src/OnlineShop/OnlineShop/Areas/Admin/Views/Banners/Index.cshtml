@@ -29,7 +29,10 @@
         <tr>
             <td>@Html.DisplayFor(modelItem => item.Title)</td>
             <td>@Html.DisplayFor(modelItem => item.SubTitle)</td>
-            <td>@Html.DisplayFor(modelItem => item.ImageName)</td>
+            @* <td>@Html.DisplayFor(modelItem => item.ImageName)</td> *@
+            <td>
+                <img class="img-thumbnail" src="/images/banners/@item.ImageName" style="max-width: 100px;" />
+            </td>
             <td>@Html.DisplayFor(modelItem => item.Priority)</td>
             <td>@Html.DisplayFor(modelItem => item.Link)</td>
             <td>@Html.DisplayFor(modelItem => item.Position)</td>

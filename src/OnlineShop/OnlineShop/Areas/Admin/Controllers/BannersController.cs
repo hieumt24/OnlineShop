@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Frameworks;
 using OnlineShop.Models.Db;
 
 namespace OnlineShop.Areas.Admin.Controllers
@@ -100,7 +101,7 @@ namespace OnlineShop.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,SubTitle,ImageName,Priority,Link,Position")] Banner banner)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,SubTitle,ImageName,Priority,Link,Position")] Banner banner, IFormFile? ImageFile)
         {
             if (id != banner.Id)
             {
@@ -111,6 +112,29 @@ namespace OnlineShop.Areas.Admin.Controllers
             {
                 try
                 {
+                    // save image
+                    if (ImageFile != null)
+                    {
+                        string org_fn;
+                        org_fn = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\banners\\" + banner.ImageName);
+                        // Nêu có ảnh cũ thì xóa
+                        if (System.IO.File.Exists(org_fn))
+                        {
+                            System.IO.File.Delete(org_fn);
+                        }
+                        // Lưu ảnh mới
+                        banner.ImageName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(ImageFile.FileName);
+
+                        string imagePath;
+                        imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\banners\\" + banner.ImageName);
+                        
+                        using (var stream = new FileStream(imagePath, FileMode.Create))
+                        {
+                            ImageFile.CopyTo(stream);
+                        }
+
+                    }
+                    //
                     _context.Update(banner);
                     await _context.SaveChangesAsync();
                 }
@@ -156,6 +180,14 @@ namespace OnlineShop.Areas.Admin.Controllers
             var banner = await _context.Banners.FindAsync(id);
             if (banner != null)
             {
+                //delete id 
+                string org_fn;
+                org_fn = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images\\banners\\" + banner.ImageName);
+                // Nêu có ảnh cũ thì xóa
+                if (System.IO.File.Exists(org_fn))
+                {
+                    System.IO.File.Delete(org_fn);
+                }
                 _context.Banners.Remove(banner);
             }
 
