@@ -35,7 +35,8 @@ public class ProductsController : Controller
         {
             return NotFound();
         }
-        ViewData["gallery"] = _context.ProductGaleries.Where(x => x.Id == id).ToList();
+        var galeries = _context.ProductGaleries.Where(x => x.ProductId == id).ToList();
+        ViewData["gallery"] = galeries;
         return View(product);
     }
     

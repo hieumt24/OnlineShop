@@ -46,7 +46,7 @@
                         <div class="col-lg-4 col-md-4 col-sm-6 col-6 ">
                             <div class="single_product">
                                 <div class="product_thumb">
-                                    <a href="product-details.html">
+                                    <a href="/products/productdetails/@item.Id">
                                         <img class="primary_img" src="/images/banners/@item.ImageName"
                                              alt="@item.ImageName">
                                     </a>
@@ -64,7 +64,7 @@
                                     }
                                 </div>
                                 <div class="product_content grid_content text-center">
-                                    <h4 class="product_name"><a href="product-details.html">@item.Title</a></h4>
+                                    <h4 class="product_name"><a href="/products/productdetails/@item.Id">@item.Title</a></h4>
                                     <div class="price_box">
                                         @if (item.Discount != null)
                                         {
