@@ -17,6 +17,8 @@ public partial class OnlineShopContext : DbContext
 
     public virtual DbSet<Banner> Banners { get; set; }
 
+    public virtual DbSet<Comment> Comments { get; set; }
+
     public virtual DbSet<Menu> Menus { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
@@ -41,6 +43,16 @@ public partial class OnlineShopContext : DbContext
             entity.Property(e => e.Position).HasMaxLength(50);
             entity.Property(e => e.SubTitle).HasMaxLength(1000);
             entity.Property(e => e.Title).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.ToTable("Comment");
+
+            entity.Property(e => e.CommentText).HasMaxLength(1000);
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Menu>(entity =>
