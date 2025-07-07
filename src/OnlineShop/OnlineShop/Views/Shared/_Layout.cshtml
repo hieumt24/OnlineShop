@@ -207,11 +207,19 @@
                             <div class="header_account">
                                 <ul class="d-flex">
                                     <li class="header_search"><a href="#"><i class="icon-magnifier icons"></i></a></li>
-                                    <li class="account_link"><a href="#"><i class="icon-user icons"></i></a>
+                                    <li class="account_link"><a href="#"><i class="icon-user icons @(User.Identity.IsAuthenticated? "text-danger" : "" )"></i></a>
                                         <ul class="dropdown_account_link">
-                                            <li><a href="#">My Account</a></li>
-                                            <li><a href="#">Login</a></li>
-                                            <li><a href="#">Contact</a></li>
+                                            @if (User.Identity.IsAuthenticated)
+                                            {
+                                                <li><a href="#">My Account</a></li>
+                                                <li><a href="#">Order List</a></li>
+                                                <li><a asp-controller="Account" asp-action="Logout">Logout</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li><a asp-action="Login" asp-controller="Account">Login</a></li>
+                                                <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+                                            }
                                         </ul>
                                     </li>
                                     <li><a href="#"><i class="icon-heart icons"></i></a> <span
@@ -239,7 +247,7 @@
     </header>
     <!--header area end-->
 
-    @RenderBody();
+    @RenderBody()
  
 
     <!--footer area start-->
