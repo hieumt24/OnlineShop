@@ -121,60 +121,7 @@
     <!--offcanvas menu area end-->
     <!--mini cart-->
     <div class="mini_cart">
-        <div class="cart_gallery">
-            <div class="cart_close">
-                <div class="cart_text">
-                    <h3>cart</h3>
-                </div>
-                <div class="mini_cart_close">
-                    <a href="javascript:void(0)"><i class="icon-close icons"></i></a>
-                </div>
-            </div>
-            <div class="cart_item">
-                <div class="cart_img">
-                    <a href="#"><img src="assets/img/product/product1.jpg" alt=""></a>
-                </div>
-                <div class="cart_info">
-                    <a href="#">Primis In Faucibus</a>
-                    <p>1 x <span> $65.00 </span></p>
-                </div>
-                <div class="cart_remove">
-                    <a href="#"><i class="icon-close icons"></i></a>
-                </div>
-            </div>
-            <div class="cart_item">
-                <div class="cart_img">
-                    <a href="#"><img src="assets/img/product/product2.jpg" alt=""></a>
-                </div>
-                <div class="cart_info">
-                    <a href="#">Letraset Sheets</a>
-                    <p>1 x <span> $60.00 </span></p>
-                </div>
-                <div class="cart_remove">
-                    <a href="#"><i class="icon-close icons"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="mini_cart_table">
-            <div class="cart_table_border">
-                <div class="cart_total">
-                    <span>Sub total:</span>
-                    <span class="price">$125.00</span>
-                </div>
-                <div class="cart_total mt-10">
-                    <span>total:</span>
-                    <span class="price">$125.00</span>
-                </div>
-            </div>
-        </div>
-        <div class="mini_cart_footer">
-            <div class="cart_button">
-                <a href="cart.html"><i class="fa fa-shopping-cart"></i> View cart</a>
-            </div>
-            <div class="cart_button">
-                <a href="checkout.html"><i class="fa fa-sign-in"></i> Checkout</a>
-            </div>
-        </div>
+       
     </div>
     <!--mini cart end-->
     <!--header area start-->
@@ -222,10 +169,8 @@
                                             }
                                         </ul>
                                     </li>
-                                    <li><a href="#"><i class="icon-heart icons"></i></a> <span
-                                            class="item_count">2</span></li>
                                     <li class="shopping_cart"><a href="#"><i class="icon-basket-loaded icons"></i></a>
-                                        <span class="item_count">2</span></li>
+                                        <span class="item_count">0</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -340,7 +285,42 @@
 
     <!-- Main JS -->
     <script src="assets/js/main.js"></script>
-
+    
+    <script>
+        function updateCart(productId, count) {
+            $.ajax({
+                url : '/Cart/UpdateCard',
+                type : 'POST',
+                contentType : 'application/json',
+                data : JSON.stringify({ productId: productId, count: count }),
+                success : function (result ) {
+                    $(".item_count").html(result);
+                    getMiniCart();
+                },
+                error : function () {
+                    alert('Error product not added to cart');
+                }
+            })
+        }
+        
+        function getMiniCart() {
+            $.ajax({
+                url: '/Cart/SmallCart',
+                type: 'GET',
+                success: function (result) {
+                    $(".mini_cart").html(result);
+                },
+                error: function () {
+                    alert('Error fetching mini cart');
+                }
+            });
+        }
+        
+        $(document).ready(function () {
+            getMiniCart();
+        });
+        
+    </script>
 
 
 </body>
