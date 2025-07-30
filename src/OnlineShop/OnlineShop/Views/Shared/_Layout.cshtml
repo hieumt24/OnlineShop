@@ -295,6 +295,9 @@
                 data : JSON.stringify({ productId: productId, count: count }),
                 success : function (result ) {
                     $(".item_count").html(result);
+                    if (count == 0) {
+                        $("#" + productId).remove();
+                    }
                     getMiniCart();
                 },
                 error : function () {

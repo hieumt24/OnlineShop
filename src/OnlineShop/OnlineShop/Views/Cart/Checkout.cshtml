@@ -1,0 +1,177 @@
+﻿@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using NuGet.Common
+@using OnlineShop.Utils
+@model Order
+
+@{
+    var products = ViewData["Products"] as List<ProductCartViewModel>;
+}
+<!--Checkout page section-->
+<div class="checkout_section" id="accordion" style="margin-top: 200px">
+    <div class="container">
+        <div class="returning_coupon_area">
+            <div class="row d-flex justify-content-end">
+                <div class="col-lg-5 col-md-6">
+                    <div class="user-actions">
+                        @if (TempData["success"] != null)
+                        {
+                            <div class="alert alert-success" role="alert">
+                                @TempData["success"]
+                            </div>
+                        }
+                        @if (TempData["message"] != null)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @TempData["message"]
+                            </div>
+                        }
+                        <h3>
+                            <i class="fa fa-comment-o" aria-hidden="true"></i>
+                            Have a Coupon ?
+                            <a class="Returning" href="#" data-toggle="collapse" data-target="#checkout_coupon2"
+                               aria-expanded="true">Click here to enter your code</a>
+
+                        </h3>
+                        <div id="checkout_coupon2" class="collapse" data-parent="#accordion">
+                            <div class="checkout_info coupon_info">
+                                <form asp-action="ApplyCouponCode">
+                                    <input placeholder="Nhập mã giảm giá" type="text" name="couponCode">
+                                    <button class="btn btn-primary" type="submit">Áp dụng</button>
+                                </form>
+                                <br/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form asp-action="Checkout" method="post">
+            <input type="hidden" asp-for="CouponCode"/>
+            <input type="hidden" asp-for="Shipping"/>
+            <div class="checkout_form">
+                <div class="row">
+                    <div class="col-lg-7 col-md-6">
+                        <h3>Chi tiết hóa đơn</h3>
+                        <div class="checkout_form_input">
+                            <label for="country">country <span>*</span></label>
+                            <select class="select_option" asp-for="Country" id="country">
+                                <option value="2">Việt Nam</option>
+                                <option value="3">Lào</option>
+                                <option value="4">Campuchia</option>
+                                <option value="5">Philippines</option>
+                                <option value="6">Hàn Quốc</option>
+                                <option value="7">Trung Quốc</option>
+                                <option value="8">Nhật Bản</option>
+                                <option value="9">Indonesia</option>
+                            </select>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label>Họ <span>*</span></label>
+                            <input type="text" asp-for="FirstName">
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label>Tên <span>*</span></label>
+                            <input type="text" asp-for="LastName">
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label>Công ty</label>
+                            <input type="text" asp-for="CompanyName">
+                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label>Địa chỉ <span>*</span></label>
+                            <input type="text" asp-for="Address">
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label>Thành phố/ Thị trấn <span>*</span></label>
+                            <input type="text" asp-for="City">
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label> Email <span>*</span></label>
+                            <input type="text" asp-for="Email">
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label> Số điện thoại <span>*</span></label>
+                            <input type="text" asp-for="Phone">
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                        <div class="checkout_form_input">
+                            <label> Đánh giá</label>
+                            <input type="text" asp-for="Comment">
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 col-md-6">
+                        <div class="order_table_right">
+                            <form action="#">
+                                <h3>Your order</h3>
+                                <div class="order_table table-responsive">
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th class="text-right">Tổng cộng</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var item in products)
+                                        {
+                                            <tr>
+                                                <td> @item.Title</td>
+                                                <td class="text-right"> @CurrencyConverter.FormatToVND(@item.RowSumPrice.GetValueOrDefault())</td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                        <tfoot>
+                                        <tr>
+                                            <td>Tổng tiền giỏ hàng</td>
+                                            <td class="text-right">
+                                                @CurrencyConverter.FormatToVND(products.Sum(x => x.RowSumPrice).GetValueOrDefault())
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Phí ship</td>
+                                            <td class="text-right">@CurrencyConverter.FormatToVND(@Model.Shipping ?? 0)</td>
+                                        </tr>
+                                        @if (!string.IsNullOrEmpty(Model.CouponCode))
+                                        {
+                                            <tr>
+                                                <td>Giảm giá - &nbsp; @Model.CouponCode &nbsp;&nbsp;
+                                                    <a href="/cart/Checkout">
+                                                        <i class="ion-android-close"></i>
+                                                    </a>
+                                                </td>
+                                                <td class="text-right">
+                                                    @CurrencyConverter.FormatToVND(@Model.CouponDiscount ?? 0)
+                                                </td>
+                                            </tr>
+                                        }
+                                        <tr class="order_total">
+                                            <th>Tổng tiền đơn hàng</th>
+                                            @{
+                                                var ordertotal = (products.Sum(x => x.RowSumPrice) ?? 0) + (Model.Shipping ?? 0) - (Model.CouponDiscount ?? 0);
+                                            }
+                                            <td class="text-right">
+                                                @CurrencyConverter.FormatToVND(ordertotal)
+                                            </td>
+                                        </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <div class="place_order_btn">
+                                    <a class="btn btn-primary" href="#">place order</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!--Checkout page section end-->

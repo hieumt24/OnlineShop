@@ -1,4 +1,5 @@
-﻿@model List<OnlineShop.Models.Db.Product>
+﻿@using OnlineShop.Utils
+@model List<OnlineShop.Models.Db.Product>
 
 <!--shop  area start-->
 <div class="shop_section shop_reverse">
@@ -73,14 +74,14 @@
                                                     decimal? discountedPrice;
                                                     discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
                                                 }
-                                                $@discountedPrice.GetValueOrDefault(0).ToString("F")
+                                                @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
                                             </span>
-                                            <span class="old_price">$@item.Price.GetValueOrDefault(0).ToString("F")</span>
+                                            <span class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
                                         }
                                         else
                                         {
                                             <span
-                                                class="current-price">@item.Price.GetValueOrDefault(0).ToString("F")</span>
+                                                class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
                                         }
                                     </div>
                                     <div class="add_to_cart">
@@ -100,14 +101,14 @@
                                                     decimal? discountedPrice;
                                                     discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
                                                 }
-                                                $@discountedPrice.GetValueOrDefault(0).ToString("F")
+                                                @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
                                             </span>
-                                            <span class="old_price">$@item.Price.GetValueOrDefault(0).ToString("F")</span>
+                                            <span class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
                                         }
                                         else
                                         {
                                             <span
-                                                class="current-price">@item.Price.GetValueOrDefault(0).ToString("F")</span>
+                                                class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
                                         }
                                     </div>
                                     <div class="product_desc">

@@ -16,4 +16,7 @@ public partial class Comment
     public int ProductId { get; set; }
 
     public DateTime CreateDate { get; set; }
+
+    public int Rating { get; set; } = 0;
+
 }

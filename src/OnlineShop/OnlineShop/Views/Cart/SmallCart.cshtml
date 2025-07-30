@@ -1,10 +1,11 @@
-﻿@model List<ProductCartViewModel>
+﻿@using OnlineShop.Utils
+@model List<ProductCartViewModel>
 @if (Model != null && Model.Any())
 {
     <div class="cart_gallery">
         <div class="cart_close">
             <div class="cart_text">
-                <h3>cart</h3>
+                <h3>Giỏ hàng</h3>
             </div>
             <div class="mini_cart_close">
                 <a href="javascript:void(0)" id="closeCart" onclick="closeCart()">
@@ -22,7 +23,7 @@
                 </div>
                 <div class="cart_info">
                     <a href="/Products/ProductDetails/@item.Id">@item.Title</a>
-                    <p>@item.Count x @item.Price.GetValueOrDefault(0).ToString("F") <span>  </span></p>
+                    <p>@item.Count x @CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0)) <span>  </span></p>
                 </div>
                 <div class="cart_remove">
                     <a onclick="updateCart(@item.Id,0)">
@@ -35,16 +36,15 @@
     <div class="mini_cart_table">
         <div class="cart_table_border">
             <div class="cart_total mt-10">
-                <span>total:</span>
+                <span>Tổng số tiền:</span>
                 <span class="price">
-                    $@Model.Sum(x => x.RowSumPrice).GetValueOrDefault(0).ToString("F")
+                    @CurrencyConverter.FormatToVND(Model.Sum(x => x.RowSumPrice).GetValueOrDefault(0))
                 </span>
             </div>
         </div>
     </div>
     <script>
-        $(".item_count").html(Model.Sum(x => x.Count));
-        
+        $(".item_count").html(@Model.Sum(x => x.Count));
         function closeCart() {
             $(".mini_cart").removeClass("active");
             $(".body_overlay").removeClass("active");
@@ -53,9 +53,9 @@
 }
 <div class="mini_cart_footer">
     <div class="cart_button">
-        <a href="cart.html"><i class="fa fa-shopping-cart"></i> View cart</a>
+        <a asp-controller="Cart" asp-action="Index"><i class="fa fa-shopping-cart"></i> Xem giỏ hàng</a>
     </div>
     <div class="cart_button">
-        <a href="checkout.html"><i class="fa fa-sign-in"></i> Checkout</a>
+        <a asp-controller="Cart" asp-action="Checkout"><i class="fa fa-sign-in"></i> Thanh toán</a>
     </div>
 </div>

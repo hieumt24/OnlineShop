@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OnlineShop.Models.Db;
 using OnlineShop.Models.ViewModels;
@@ -12,6 +13,19 @@ public class CartController : Controller
     public CartController(OnlineShopContext context)
     {
         _context = context;
+    }
+    
+    // GET
+    public IActionResult Index()
+    {
+        var result = GetProductInCart();
+        return View(result);
+    }
+    
+    public IActionResult ClearCart()
+    {
+        Response.Cookies.Delete("Cart");
+        return Redirect("/");
     }
 
     [HttpPost]
@@ -39,7 +53,7 @@ public class CartController : Controller
         {
             if (request.Count > 0)
             {
-                foundProductInCart.Count = request.Count + 1;
+                foundProductInCart.Count = request.Count;
             }
             else
             {
@@ -57,25 +71,12 @@ public class CartController : Controller
         return new JsonResult(result);
     }
 
-    public List<CartViewModel> GetCartItem()
-    {
-        List<CartViewModel> cartList = new List<CartViewModel>();
-        
-        var prevCartItemString = Request.Cookies["Cart"];
-        if (!string.IsNullOrEmpty(prevCartItemString))
-        {
-            cartList = JsonConvert.DeserializeObject<List<CartViewModel>>(prevCartItemString);
-        }
-        
-        return cartList;
-    }
-
-    public IActionResult SmallCart()
+    public List<ProductCartViewModel> GetProductInCart()
     {
         var cartItems = GetCartItem();
         if (!cartItems.Any())
         {
-            return PartialView(null);
+            return null;
         }
         var cartItemProductIds = cartItems.Select(x => x.ProductId).ToList();
         
@@ -100,6 +101,80 @@ public class CartController : Controller
             };
             productCartViewModels.Add(newItem);
         }
-        return PartialView(productCartViewModels);
+        return  productCartViewModels;
+    }
+
+    public List<CartViewModel> GetCartItem()
+    {
+        List<CartViewModel> cartList = new List<CartViewModel>();
+        
+        var prevCartItemString = Request.Cookies["Cart"];
+        if (!string.IsNullOrEmpty(prevCartItemString))
+        {
+            cartList = JsonConvert.DeserializeObject<List<CartViewModel>>(prevCartItemString);
+        }
+        
+        return cartList;
+    }
+
+    public IActionResult SmallCart()
+    {
+        var result = GetProductInCart();
+        return PartialView(result);
+    }
+
+    [Authorize]
+
+    public IActionResult Checkout()
+    {
+        var order = new Order();
+        
+        var shipping = _context.Settings.First().Shipping;
+        if (shipping != null)
+        {
+            order.Shipping = shipping;
+        }
+
+        ViewData["Products"] = GetProductInCart();
+
+        return View(order);
+    }
+
+    [Authorize]
+    [HttpPost]
+    public IActionResult ApplyCouponCode([FromForm] string couponCode)
+    {
+        var order = new Order();
+        
+        var coupon = _context.Coupons.FirstOrDefault(c => c.Code == couponCode);
+        
+        var shipping = _context.Settings.First().Shipping;
+
+        if (coupon != null)
+        {
+            order.CouponCode = coupon.Code;
+            order.CouponDiscount = coupon.Discount;
+            TempData["success"] = "Mã giảm giá đã được áp dụng thành công.";
+        }
+        else
+        {
+            ViewData["Products"] = GetProductInCart();
+            TempData["message"] = "Mã giảm giá không hợp lệ hoặc đã hết hạn.";
+            if(shipping != null)
+            {
+                order.Shipping = shipping;
+            }
+            return View("Checkout", order);
+            
+        }
+        
+        if(shipping != null)
+        {
+            order.Shipping = shipping;
+        }
+
+        ViewData["Products"] = GetProductInCart();
+        
+        return View("Checkout", order);
     }
 }

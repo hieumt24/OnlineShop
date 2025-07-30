@@ -45,14 +45,25 @@ public class ProductsController : Controller
 
         ViewData["NewProducts"] = _context.Products.Where(x => x.Id != id)
             .Take(6).OrderByDescending(x => x.Id).ToList();
+        
+        var comments = _context.Comments.Where(x => x.ProductId == id).ToList();
 
         ViewData["comments"] = _context.Comments.Where(x => x.ProductId == id)
             .OrderByDescending(x => x.CreateDate).ToList();
+        
+        // Calculate average rating
+        double averageRating = 0;
+        if (comments.Any())
+        {
+            averageRating = comments.Average(x => x.Rating);
+        }
+        ViewData["AverageRating"] = averageRating;
+        
         return View(product);
     }
 
     [HttpPost]
-    public IActionResult SubmitComment(string name, string email, string commentText, int productId)
+    public IActionResult SubmitComment(string name, string email, string commentText, int productId, int rating)
     {
         if (!string.IsNullOrEmpty(name) &&
             !string.IsNullOrEmpty(email) &&
@@ -67,12 +78,15 @@ public class ProductsController : Controller
                 return Redirect("/Products/ProductDetails/" + productId);
             }
 
-            Comment newComment = new Comment();
-            newComment.Name = name;
-            newComment.Email = email;
-            newComment.CommentText = commentText;
-            newComment.ProductId = productId;
-            newComment.CreateDate = DateTime.Now;
+            Comment newComment = new Comment()
+            {
+                Name = name,
+                Email = email,
+                CommentText = commentText,
+                ProductId = productId,
+                Rating = rating,
+                CreateDate = DateTime.Now
+            };
 
             _context.Comments.Add(newComment);
             _context.SaveChanges();

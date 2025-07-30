@@ -1,0 +1,122 @@
+﻿@using OnlineShop.Utils
+@model List<ProductCartViewModel>
+@if (Model != null && Model.Any())
+{
+    <!--shopping cart area start -->
+    <div class="shopping_cart_area" style="margin-top: 200px">
+        <div class="container">
+            <form action="#">
+                <div class="cart_page_inner mb-60">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="cart_page_tabel">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Thông tin</th>
+                                        <th>Giá</th>
+                                        <th>Số lượng</th>
+                                        <th>Tổng</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr class="border-top" id="@item.Id">
+                                            <td>
+                                                <div class="cart_product_thumb">
+                                                    <img src="/images/banners/@item.ImageName" alt="@item.Title">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cart_product_text">
+                                                    <h4>@item.Title</h4>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cart_product_price">
+                                                    <span>@CurrencyConverter.FormatToVND(@item.Price.GetValueOrDefault())</span>
+                                                </div>
+                                            </td>
+                                            <td class="product_quantity">
+                                                <div class="cart_product_quantity">
+                                                    <input min="1" max="100" value="@item.Count" type="number"
+                                                           onchange="updateCart(@item.Id, $(this).val())">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cart_product_price">
+                                                    <span>@CurrencyConverter.FormatToVND(@item.RowSumPrice.GetValueOrDefault())</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cart_product_remove text-right">
+                                                    <a onclick="updateCart(@item.Id,0)"><i
+                                                            class="ion-android-close"></i></a>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="cart_page_button border-top d-flex justify-content-between">
+                                <div class="shopping_cart_btn">
+                                    <a asp-controller="Cart" asp-action="ClearCart" class="btn btn-primary border">Xóa
+                                        giỏ hàng</a>
+                                    <a asp-controller="Cart" asp-action="Index" class="btn btn-primary border">Cập nhật
+                                        giỏ hàng</a>
+                                </div>
+                                <div class="shopping_continue_btn">
+                                    <a asp-controller="Products" asp-action="Index" class="btn btn-primary border">Tiếp
+                                        tục mua sắm</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--coupon code area start-->
+                <div class="cart_page_bottom">
+                        <div class="row d-flex justify-content-end">
+                        @* <div class="col-lg-4 col-md-6 col-sm-6"> *@
+                        @*     <div class="shopping_coupon_calculate"> *@
+                        @*         <h3 class="border-bottom">Coupon Discount </h3> *@
+                        @*         <p>Enter your coupon code if you have one.</p> *@
+                        @*         <input class="border" placeholder="Enter your code" type="text"> *@
+                        @*         <button class="btn btn-primary" type="submit">apply coupon</button> *@
+                        @*     </div> *@
+                        @* </div> *@
+                        <div class="col-lg-4 col-md-6 col-sm-8">
+                            <div class="grand_totall_area">
+                                <div class="grand_totall_inner border-bottom">
+                                    <div class="cart_grandtotal d-flex justify-content-between">
+                                        <p>Tổng số tiền</p>
+                                        <span>@CurrencyConverter.FormatToVND(@Model.Sum(x => x.RowSumPrice).GetValueOrDefault())</span>
+                                    </div>
+                                </div>
+                                <div class="proceed_checkout_btn">
+                                    <a class="btn btn-primary" asp-controller="Cart" asp-action="Checkout">Tiến hành thành toán</a>
+                                </div>
+                                <a href="#">Checkout with Mutilple Adresses</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--coupon code area end-->
+            </form>
+        </div>
+    </div>
+    <!--shopping cart area end -->
+}
+else
+{
+    <div class="container" style="margin-top: 200px;">
+        <div class="alert alert-info text-center">
+            <h4>Giỏ hàng của bạn đang trống!</h4>
+            <p>Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm.</p>
+            <a asp-controller="Products" asp-action="Index" class="btn btn-primary">Tiếp tục mua sắm</a>
+        </div>
+    </div>
+}
