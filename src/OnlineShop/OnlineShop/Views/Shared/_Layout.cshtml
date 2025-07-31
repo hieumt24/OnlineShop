@@ -155,17 +155,17 @@
                                 <ul class="d-flex">
                                     <li class="header_search"><a href="#"><i class="icon-magnifier icons"></i></a></li>
                                     <li class="account_link"><a href="#"><i class="icon-user icons @(User.Identity.IsAuthenticated? "text-danger" : "" )"></i></a>
-                                        <ul class="dropdown_account_link">
+                                        <ul class="dropdown_account_link justify-content-end">
                                             @if (User.Identity.IsAuthenticated)
                                             {
-                                                <li><a href="#">My Account</a></li>
-                                                <li><a href="#">Order List</a></li>
-                                                <li><a asp-controller="Account" asp-action="Logout">Logout</a></li>
+                                                <li><a href="#">Tài khoản của bạn</a></li>
+                                                <li><a href="/User/Orders">Đơn hàng</a></li>
+                                                <li><a href="/Account/Logout">Đăng xuất</a></li>
                                             }
                                             else
                                             {
-                                                <li><a asp-action="Login" asp-controller="Account">Login</a></li>
-                                                <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+                                                <li><a asp-action="Login" asp-controller="Account">Đăng nhập</a></li>
+                                                <li><a asp-controller="Account" asp-action="Register">Đăng kí</a></li>
                                             }
                                         </ul>
                                     </li>

@@ -3,6 +3,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using OnlineShop.Models.Db;
+using OnlineShop.Services;
+using OnlineShop.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
     });
+
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,6 +44,13 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllerRoute(
         name : "Admin",
         pattern : "{area:exists}/{controller=Homes}/{action=Index}/{id?}"
+    );
+});
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name : "areas",
+        pattern : "{area:exists}/{controller=Home}/{action=Index}/{id?}"
     );
 });
 app.MapControllerRoute(

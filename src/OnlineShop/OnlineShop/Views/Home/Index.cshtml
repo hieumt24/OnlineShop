@@ -1,7 +1,572 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using OnlineShop.Utils
+@{
+    ViewData["Title"] = "Trang chủ";
+    var banners = ViewData["banners"] as List<Banner>;
+    var newProducts = ViewData["newProducts"] as List<Product>;
+    var comments = ViewData["comments"] as List<Comment>;
+    double averageStart = 0;
+    int countCommnet = 0;
+    var bestSellingProducts = ViewData["bestSellingProducts"] as List<Product>;
 }
 
-<div class="text-center" style="height: 250px; background-color: aqua">
- 
-</div>
+<!--slider area start-->
+<section class="slider_section mb-63">
+    <div class="slider_area slick_slider_activation" data-slick='{
+            "slidesToShow": 1,
+            "slidesToScroll": 1,
+            "arrows": true,
+            "dots": true,
+            "autoplay": false,
+            "speed": 300,
+            "infinite": true
+        }'>
+        <div class="single_slider d-flex align-items-center" data-bgimg="assets/img/slider/slider1.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-7">
+                        <div class="slider_text">
+                            <span>Lookbook</span>
+                            <h1>fashion trend for autum girls with vibes</h1>
+                            <p>We love seeing how our Aslam wearers like <br> to wear their Norda</p>
+                            <a class="btn btn-primary" href="shop.html">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="single_slider d-flex align-items-center" data-bgimg="assets/img/slider/slider1.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-7">
+                        <div class="slider_text">
+                            <span>Lookbook</span>
+                            <h1>fashion trend for autum girls with vibes</h1>
+                            <p>We love seeing how our Aslam wearers like <br> to wear their Norda</p>
+                            <a class="btn btn-primary" href="shop.html">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="single_slider d-flex align-items-center" data-bgimg="assets/img/slider/slider1.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-7">
+                        <div class="slider_text">
+                            <span>Lookbook</span>
+                            <h1>fashion trend for autum girls with vibes</h1>
+                            <p>We love seeing how our Aslam wearers like <br> to wear their Norda</p>
+                            <a class="btn btn-primary" href="shop.html">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--slider area end-->
+
+<!--shipping section start-->
+<section class="shipping_section mb-102">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="shipping_inner d-flex justify-content-between">
+                    <div class="single_shipping d-flex align-items-center">
+                        <div class="shipping_icon">
+                            <i class="icon-cursor icons"></i>
+                        </div>
+                        <div class="shipping_text">
+                            <h3>Free Shipping</h3>
+                            <p>Orders over $100</p>
+                        </div>
+                    </div>
+                    <div class="single_shipping d-flex align-items-center">
+                        <div class="shipping_icon">
+                            <i class="icon-reload icons"></i>
+                        </div>
+                        <div class="shipping_text">
+                            <h3>Free Returns</h3>
+                            <p>Within 30 days</p>
+                        </div>
+                    </div>
+                    <div class="single_shipping d-flex align-items-center">
+                        <div class="shipping_icon">
+                            <i class="icon-lock icons"></i>
+                        </div>
+                        <div class="shipping_text">
+                            <h3>100% Payment Secure</h3>
+                            <p>Payment Online</p>
+                        </div>
+                    </div>
+                    <div class="single_shipping d-flex align-items-center">
+                        <div class="shipping_icon">
+                            <i class="icon-tag icons"></i>
+                        </div>
+                        <div class="shipping_text">
+                            <h3>Affordable Price</h3>
+                            <p>Guaranteed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--shipping section end-->
+
+<!-- banner section start -->
+<section class="banner_section mb-109">
+    <div class="container-fluid">
+        <div class="row">
+        </div>
+        <div class="banner_container d-flex">
+            <figure class="single_banner position-relative mr-30">
+                <img src="assets/img/bg/bg1.jpg" alt="">
+                <figcaption class="banner_text position-absolute">
+                    <h3>Zara Pattern <br> backpacks</h3>
+                    <p>Stretch, fresh-cool help you alway <br> comfortable</p>
+                    <a class="btn btn-primary" href="shop.html">Shop Now</a>
+                </figcaption>
+            </figure>
+            <figure class="single_banner position-relative">
+                <img src="assets/img/bg/bg2.jpg" alt="">
+                <figcaption class="banner_text position-absolute">
+                    <h3 class="text-white">Basic Color Caps</h3>
+                    <p class="text-white">Minimalist never cool, choose and make <br> the simple great again!</p>
+                </figcaption>
+            </figure>
+        </div>
+    </div>
+</section>
+<!-- banner section end -->
+
+<!-- product section start -->
+<section class="product_section mb-96">
+    <div class="container">
+        <div class="product_header d-flex justify-content-between  mb-50">
+            <div class="section_title">
+                <h2>Sản phẩm bán chạy</h2>
+            </div>
+        </div>
+        <div class="product_container row">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="all" role="tabpanel">
+                    <div class="product_slick slick_slider_activation" data-slick='{
+                            "slidesToShow": 4,
+                            "slidesToScroll": 1,
+                            "arrows": true,
+                            "dots": false,
+                            "autoplay": false,
+                            "speed": 300,
+                            "infinite": true,
+                            "responsive":[
+                              {"breakpoint":992, "settings": { "slidesToShow": 3 } },
+                              {"breakpoint":768, "settings": { "slidesToShow": 2 } },
+                              {"breakpoint":300, "settings": { "slidesToShow": 1 } }
+                             ]
+                        }'>
+                        @if (bestSellingProducts != null && bestSellingProducts.Any())
+                        {
+                            foreach (var item in bestSellingProducts)
+                            {
+                                <div class="single_product">
+                                    <div class="product_thumb">
+                                        <a href="/products/productdetails/@item.Id">
+                                            <img class="primary_img" src="/images/banners/@item.ImageName"
+                                                 alt="@item.ImageName">
+                                        </a>
+                                        @if (item.Discount != null && item.Price > 0)
+                                        {
+                                            <div class="product_label">
+                                                @{
+                                                    decimal? discountPercentage;
+                                                    discountPercentage = (item.Discount.GetValueOrDefault(0) / item.Price.GetValueOrDefault(0)) * 100;
+                                                }
+                                                <span>
+                                                -@discountPercentage.GetValueOrDefault(0).ToString("F0")%
+                                            </span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="product_content grid_content text-center">
+                                        @{
+                                            if (comments != null && comments.Any())
+                                            {
+                                                var filteredComments = comments.Where(x => x.ProductId == item.Id);
+                                                if (filteredComments.Any())
+                                                {
+                                                    averageStart = Math.Floor((double)filteredComments.Average(x => x.Rating));
+                                                }
+                                                else
+                                                {
+                                                    averageStart = 0;
+                                                }
+                                                countCommnet = comments.Where(x => x.ProductId == item.Id).Count();
+                                            }
+                                        }
+                                        @if (averageStart > 0)
+                                        {
+                                            <div class="product_ratting">
+                                                <ul class="d-flex justify-content-center">
+                                                    @for(int i = 0; i < averageStart; i++)
+                                                    {
+                                                        <li><a href="#"><i class="ion-android-star"></i></a></li>
+                                                    }
+                                                    <li><span>(@countCommnet)</span></li>
+                                                </ul>
+                                            </div>
+                                        }
+                                        <h4 class="product_name">
+                                            <a
+                                                href="/products/productdetails/@item.Id">@item.Title</a></h4>
+                                        <div class="price_box">
+                                            @if (item.Discount != null)
+                                            {
+                                                <span class="current_price">
+                                                    @{
+                                                        decimal? discountedPrice;
+                                                        discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
+                                                    }
+                                                    @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
+                                                </span>
+                                                <span
+                                                    class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                            else
+                                            {
+                                                <span
+                                                    class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                        </div>
+                                        <div class="add_to_cart">
+                                            <a class="btn btn-primary" href="#" data-tippy="Add To Cart"
+                                               onclick="updateCart(@item.Id,1)"
+                                               data-tippy-inertia="true" data-tippy-delay="50" data-tippy-arrow="true"
+                                               data-tippy-placement="top">Add To Cart</a>
+                                        </div>
+                                    </div>
+                                    <div class="product_list_content">
+                                        <h4 class="product_name"><a href="product-details.html">@item.Title</a></h4>
+                                        <p><a href="#">shows</a></p>
+                                        <div class="price_box">
+                                            @if (item.Discount != null)
+                                            {
+                                                <span class="current_price">
+                                                @{
+                                                        decimal? discountedPrice;
+                                                        discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
+                                                    }
+                                                    @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
+                                            </span>
+                                                <span
+                                                    class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                            else
+                                            {
+                                                <span
+                                                    class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                        </div>
+                                        <div class="product_desc">
+                                            <p>@item.Description</p>
+                                        </div>
+                                        <div class="add_to_cart">
+                                            <a class="btn btn-primary" onclick="updateCart(@item.Id, 1)"
+                                               data-tippy="Add To Cart"
+                                               data-tippy-inertia="true" data-tippy-delay="50" data-tippy-arrow="true"
+                                               data-tippy-placement="top">Add To Cart</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- product section end -->
+
+<!-- banner section start -->
+<section class="banner_section banner_style2 mb-109">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                <figure class="single_banner position-relative">
+                    <img src="assets/img/bg/bg3.jpg" alt="">
+                    <div class="banner_text position-absolute">
+                        <h3>Minimalist <br> sneaker</h3>
+                        <p>Stretch, fresh-cool help you alway <br> comfortable</p>
+                        <a class="btn btn-primary" href="shop.html">Shop Now</a>
+                    </div>
+                    <div class="banner_tag">
+                        <span>new arrivals <br> women</span>
+                    </div>
+                </figure>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-6">
+                <figure class="single_banner position-relative">
+                    <img src="assets/img/bg/bg4.jpg" alt="">
+                    <div class="banner_text position-absolute text__style2">
+                        <h3><span>50%</span> OFF <br> for Autumn</h3>
+                        <p>Stretch, fresh-cool help you alway <br> comfortable</p>
+                        <a class="btn btn-primary" href="shop.html">Shop Now</a>
+                    </div>
+                    <div class="banner_tag">
+                        <span>mega sale</span>
+                    </div>
+                </figure>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- banner section end -->
+
+<!-- product section start -->
+<section class="product_section mb-80">
+    <div class="container">
+        <div class="product_header d-flex justify-content-between  mb-60">
+            <div class="section_title">
+                <h2>Sản phẩm mới</h2>
+            </div>
+        </div>
+        <div class="product_container row">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="all2" role="tabpanel">
+                    <div class="product_slick slick_slider_activation" data-slick='{
+                            "slidesToShow": 4,
+                            "slidesToScroll": 1,
+                            "arrows": true,
+                            "dots": false,
+                            "autoplay": false,
+                            "speed": 300,
+                            "infinite": true,
+                            "responsive":[
+                              {"breakpoint":992, "settings": { "slidesToShow": 3 } },
+                              {"breakpoint":768, "settings": { "slidesToShow": 2 } },
+                              {"breakpoint":300, "settings": { "slidesToShow": 1 } }
+                             ]
+                        }'>
+                        @if (newProducts != null && newProducts.Any())
+                        {
+                            foreach (var item in newProducts)
+                            {
+                                <div class="single_product">
+                                    <div class="product_thumb">
+                                        <a href="/products/productdetails/@item.Id">
+                                            <img class="primary_img" src="/images/banners/@item.ImageName"
+                                                 alt="@item.ImageName">
+                                        </a>
+                                        @if (item.Discount != null && item.Price > 0)
+                                        {
+                                            <div class="product_label">
+                                                @{
+                                                    decimal? discountPercentage;
+                                                    discountPercentage = (item.Discount.GetValueOrDefault(0) / item.Price.GetValueOrDefault(0)) * 100;
+                                                }
+                                                <span>
+                                                -@discountPercentage.GetValueOrDefault(0).ToString("F0")%
+                                            </span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="product_content grid_content text-center">
+                                        @{
+                                            if (comments != null && comments.Any())
+                                            {
+                                                var filteredComments = comments.Where(x => x.ProductId == item.Id);
+                                                if (filteredComments.Any())
+                                                {
+                                                    averageStart = Math.Floor((double)filteredComments.Average(x => x.Rating));
+                                                }
+                                                else
+                                                {
+                                                    averageStart = 0;
+                                                }
+                                                countCommnet = comments.Where(x => x.ProductId == item.Id).Count();
+                                            }
+                                        }
+                                        @if (averageStart > 0)
+                                        {
+                                            <div class="product_ratting">
+                                                <ul class="d-flex justify-content-center">
+                                                    @for(int i = 0; i < averageStart; i++)
+                                                    {
+                                                        <li><a href="#"><i class="ion-android-star"></i></a></li>
+                                                    }
+                                                    <li><span>(@countCommnet)</span></li>
+                                                </ul>
+                                            </div>
+                                        }
+                                        <h4 class="product_name">
+                                            <a
+                                                href="/products/productdetails/@item.Id">@item.Title</a></h4>
+                                        <div class="price_box">
+                                            @if (item.Discount != null)
+                                            {
+                                                <span class="current_price">
+                                                    @{
+                                                        decimal? discountedPrice;
+                                                        discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
+                                                    }
+                                                    @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
+                                                </span>
+                                                <span
+                                                    class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                            else
+                                            {
+                                                <span
+                                                    class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                        </div>
+                                        <div class="add_to_cart">
+                                            <a class="btn btn-primary" href="#" data-tippy="Add To Cart"
+                                               onclick="updateCart(@item.Id,1)"
+                                               data-tippy-inertia="true" data-tippy-delay="50" data-tippy-arrow="true"
+                                               data-tippy-placement="top">Add To Cart</a>
+                                        </div>
+                                    </div>
+                                    <div class="product_list_content">
+                                        <h4 class="product_name"><a href="product-details.html">@item.Title</a></h4>
+                                        <p><a href="#">shows</a></p>
+                                        <div class="price_box">
+                                            @if (item.Discount != null)
+                                            {
+                                                <span class="current_price">
+                                                @{
+                                                        decimal? discountedPrice;
+                                                        discountedPrice = item.Price.GetValueOrDefault(0) - item.Discount.GetValueOrDefault(0);
+                                                    }
+                                                    @CurrencyConverter.FormatToVND(discountedPrice.GetValueOrDefault(0))
+                                            </span>
+                                                <span
+                                                    class="old_price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                            else
+                                            {
+                                                <span
+                                                    class="current-price">@CurrencyConverter.FormatToVND(item.Price.GetValueOrDefault(0))</span>
+                                            }
+                                        </div>
+                                        <div class="product_desc">
+                                            <p>@item.Description</p>
+                                        </div>
+                                        <div class="add_to_cart">
+                                            <a class="btn btn-primary" onclick="updateCart(@item.Id, 1)"
+                                               data-tippy="Add To Cart"
+                                               data-tippy-inertia="true" data-tippy-delay="50" data-tippy-arrow="true"
+                                               data-tippy-placement="top">Add To Cart</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- product section end -->
+
+<!-- blog section start -->
+<section class="blog_section mb-140">
+    <div class="container">
+        <div class="product_header border-top d-flex justify-content-between  mb-60">
+            <div class="section_title">
+                <h2>press & look</h2>
+            </div>
+            <div class="all_articles">
+                <a href="blog.html">All articles</a>
+            </div>
+        </div>
+        <div class="blog_container row">
+            <div class="blog_slick slick_slider_activation" data-slick='{
+                        "slidesToShow": 3,
+                        "slidesToScroll": 1,
+                        "arrows": false,
+                        "dots": false,
+                        "autoplay": false,
+                        "speed": 300,
+                        "infinite": true,
+                        "responsive":[
+                          {"breakpoint":992, "settings": { "slidesToShow": 2 } },
+                          {"breakpoint":768, "settings": { "slidesToShow": 2 } },
+                          {"breakpoint":576, "settings": { "slidesToShow": 1 } }
+                        ]
+                    }'>
+                <article class="col single_blog">
+                    <figure>
+                        <div class="blog_thumb">
+                            <a href="blog-details.html"><img src="assets/img/blog/blog1.jpg" alt=""></a>
+                        </div>
+                        <figcaption class="blog_content">
+                            <div class="blog_meta">
+                                <ul class="d-flex">
+                                    <li><span class="meta_tag">News</span></li>
+                                    <li><span>May 25, 2020</span></li>
+                                </ul>
+                            </div>
+                            <h3><a href="blog-details.html">Five things you only know if you’re at Chanel's Hamburg
+                                    Show</a></h3>
+                        </figcaption>
+                    </figure>
+                </article>
+                <article class="col single_blog">
+                    <figure>
+                        <div class="blog_thumb">
+                            <a href="blog-details.html"><img src="assets/img/blog/blog2.jpg" alt=""></a>
+                        </div>
+                        <figcaption class="blog_content">
+                            <div class="blog_meta">
+                                <ul class="d-flex">
+                                    <li><span class="meta_tag">News</span></li>
+                                    <li><span>May 25, 2020</span></li>
+                                </ul>
+                            </div>
+                            <h3><a href="blog-details.html">Basic colord mixed - trendind 2020</a></h3>
+                        </figcaption>
+                    </figure>
+                </article>
+                <article class="col single_blog">
+                    <figure>
+                        <div class="blog_thumb">
+                            <a href="blog-details.html"><img src="assets/img/blog/blog3.jpg" alt=""></a>
+                        </div>
+                        <figcaption class="blog_content">
+                            <div class="blog_meta">
+                                <ul class="d-flex">
+                                    <li><span class="meta_tag">News</span></li>
+                                    <li><span>May 25, 2020</span></li>
+                                </ul>
+                            </div>
+                            <h3><a href="blog-details.html">Calvin Klein Shoes Collection 2020, Activites Summer</a>
+                            </h3>
+                        </figcaption>
+                    </figure>
+                </article>
+                <article class="col single_blog">
+                    <figure>
+                        <div class="blog_thumb">
+                            <a href="blog-details.html"><img src="assets/img/blog/blog1.jpg" alt=""></a>
+                        </div>
+                        <figcaption class="blog_content">
+                            <div class="blog_meta">
+                                <ul class="d-flex">
+                                    <li><span class="meta_tag">News</span></li>
+                                    <li><span>May 25, 2020</span></li>
+                                </ul>
+                            </div>
+                            <h3><a href="blog-details.html">Five things you only know if you’re at Chanel's Hamburg
+                                    Show</a></h3>
+                        </figcaption>
+                    </figure>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- blog section end -->

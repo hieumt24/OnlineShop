@@ -32,6 +32,8 @@ public partial class OnlineShopContext : DbContext
     public virtual DbSet<Order> Orders { get; set; }
     
     public virtual DbSet<Setting> Settings { get; set; }
+    
+    public virtual DbSet<OrderDetails> OrderDetails { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

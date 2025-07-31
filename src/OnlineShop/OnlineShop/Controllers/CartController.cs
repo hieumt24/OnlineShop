@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OnlineShop.Models.Db;
@@ -177,4 +178,73 @@ public class CartController : Controller
         
         return View("Checkout", order);
     }
+
+    [Authorize]
+    [HttpPost]
+    public IActionResult Checkout(Order order)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewData["Products"] = GetProductInCart();
+
+            return View(order);
+        }
+        
+        //check and find coupon
+        if (!string.IsNullOrEmpty(order.CouponCode))
+        {
+            var coupon = _context.Coupons.FirstOrDefault(c => c.Code == order.CouponCode);
+            if (coupon != null)
+            {
+                order.CouponCode = coupon.Code;
+                order.CouponDiscount = coupon.Discount;
+            }
+            else
+            {
+                TempData["messsage"] = "Mã giảm giá không hợp lệ hoặc đã hết hạn.";
+                ViewData["Products"] = GetProductInCart();
+
+                return View(order);
+            }
+        }
+
+        var products = GetProductInCart();
+        
+        order.Shipping = _context.Settings.First().Shipping;
+        order.CreateDate = DateTime.Now;
+        order.SubTotal = products.Sum(x => x.RowSumPrice);
+        order.Total = order.SubTotal + (order.Shipping ?? 0);
+        order.UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        if (order.CouponDiscount != null)
+        {
+            order.Total -= order.CouponDiscount;
+        }
+        
+        _context.Orders.Add(order);
+        _context.SaveChanges();
+        
+        //------------------------------------------------------------
+        
+        List<OrderDetails> orderDetails = new List<OrderDetails>();
+
+        foreach (var item in products)
+        {
+            OrderDetails orderDetailItem = new OrderDetails()
+            {
+                Count = item.Count,
+                ProductTitle = item.Title,
+                ProductPrice = (decimal)item.Price,
+                OrderId = order.Id,
+                ProductId = item.Id
+            };
+            orderDetails.Add(orderDetailItem);
+        }
+        
+        _context.OrderDetails.AddRange(orderDetails);
+        _context.SaveChanges();
+        
+        return Redirect("/Cart/RedirectToPayment?orderId=" + order.Id);
+    }
+    
 }

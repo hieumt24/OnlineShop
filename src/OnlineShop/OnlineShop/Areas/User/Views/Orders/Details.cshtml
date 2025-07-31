@@ -1,0 +1,312 @@
+@using OnlineShop.Models.Db
+@using OnlineShop.Utils
+@model OnlineShop.Models.Db.Order
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    List<OrderDetails> orderDetails = ViewData["OrderDetails"] as List<OrderDetails>;
+}
+
+<div class="order-details-page">
+    <div class="container-fluid py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: calc(100vh - 80px); margin-top: 80px;">
+        <div class="container">
+            <!-- Header Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-receipt me-2"></i>
+                                Chi tiết đơn hàng
+                            </h2>
+                            <p class="text-white-50 mb-0">Mã đơn hàng: #@Model.TransId</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="fas fa-check-circle me-1"></i>
+                            @Model.Status
+                        </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Customer Information Card -->
+                <div class="col-lg-6">
+                    <div class="card shadow-lg border-0 h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                Thông tin khách hàng
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Họ tên</label>
+                                        <p class="fw-bold mb-2">@Model.FirstName @Model.LastName</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Email</label>
+                                        <p class="fw-bold mb-2">
+                                            <i class="fas fa-envelope text-primary me-1"></i>
+                                            @Model.Email
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Số điện thoại</label>
+                                        <p class="fw-bold mb-2">
+                                            <i class="fas fa-phone text-primary me-1"></i>
+                                            @Model.Phone
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Công ty</label>
+                                        <p class="fw-bold mb-2">@Model.CompanyName</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Information Card -->
+                <div class="col-lg-6">
+                    <div class="card shadow-lg border-0 h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shipping-fast me-2"></i>
+                                Thông tin giao hàng
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Địa chỉ</label>
+                                        <p class="fw-bold mb-2">
+                                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                            @Model.Address
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Thành phố</label>
+                                        <p class="fw-bold mb-2">@Model.City</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="text-muted small">Quốc gia</label>
+                                        <p class="fw-bold mb-2">@Model.Country</p>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Comment))
+                                {
+                                    <div class="col-12">
+                                        <div class="info-item">
+                                            <label class="text-muted small">Ghi chú</label>
+                                            <p class="text-muted fst-italic">@Model.Comment</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Card -->
+                <div class="col-lg-4">
+                    <div class="card shadow-lg border-0 sticky-top" style="top: 20px;">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>
+                                Tổng kết đơn hàng
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính:</span>
+                                <span class="fw-bold">@CurrencyConverter.FormatToVND(Model.SubTotal ?? 0)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Phí vận chuyển:</span>
+                                <span class="fw-bold">@CurrencyConverter.FormatToVND(Model.Shipping ?? 00)</span>
+                            </div>
+                            @if (Model.CouponDiscount > 0)
+                            {
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>
+                                    <i class="fas fa-tag me-1"></i>
+                                    Giảm giá (@Model.CouponCode):
+                                </span>
+                                    <span class="fw-bold">-@CurrencyConverter.FormatToVND(Model.CouponDiscount ?? 0)</span>
+                                </div>
+                            }
+                            <hr>
+                            <div class="d-flex justify-content-between fs-5">
+                                <span class="fw-bold">Tổng cộng:</span>
+                                <span class="fw-bold text-success">@CurrencyConverter.FormatToVND(Model.Total ?? 0)</span>
+                            </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Ngày đặt: @Model.CreateDate
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="col-lg-8">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-box me-2"></i>
+                                Sản phẩm đã đặt
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            @if (orderDetails != null && orderDetails.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th class="border-0 fw-bold">Sản phẩm</th>
+                                            <th class="border-0 fw-bold text-center">Số lượng</th>
+                                            <th class="border-0 fw-bold text-end">Đơn giá</th>
+                                            <th class="border-0 fw-bold text-end">Thành tiền</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var item in orderDetails)
+                                        {
+                                            <tr>
+                                                <td class="py-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="bg-light rounded-circle p-2 me-3" style="width: 50px; height: 50px;">
+                                                            <i class="fas fa-cube text-muted"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="mb-0">@item.ProductTitle</h6>
+                                                            <small class="text-muted">SKU: #PRD-@item.ProductId</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 text-center">
+                                                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                                                        @item.Count
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 text-end fw-bold">
+                                                    @CurrencyConverter.FormatToVND(item.ProductPrice)
+                                                </td>
+                                                <td class="py-3 text-end fw-bold text-success">
+                                                    @CurrencyConverter.FormatToVND((item.Count * item.ProductPrice))
+                                                </td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5">
+                                    <i class="fas fa-box-open text-muted" style="font-size: 4rem;"></i>
+                                    <h5 class="text-muted mt-3">Không có sản phẩm nào trong đơn hàng</h5>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <a asp-action="Index" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Quay lại danh sách
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light btn-lg" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>
+                                In đơn hàng
+                            </button>
+                            <button class="btn btn-info btn-lg">
+                                <i class="fas fa-download me-2"></i>
+                                Tải PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-details-page .info-item label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .order-details-page .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .order-details-page .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .order-details-page .card-header {
+        border: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .order-details-page .table th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .order-details-page .badge {
+        font-size: 0.8rem;
+    }
+    
+
+    .order-details-page .btn-lg {
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .order-details-page .d-flex.justify-content-between {
+        flex-direction: column;
+    }
+
+    .order-details-page .d-flex.justify-content-between > * {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

@@ -30,6 +30,12 @@ public partial class Order
     
     public decimal? Shipping { get; set; }
     
+    public decimal? SubTotal { get; set; }
+    
+    public decimal? Total { get; set; }
+    
+    public DateTime? CreateDate { get; set; }
+    
     public string? TransId { get; set; }
     
     public string? Status { get; set; }
