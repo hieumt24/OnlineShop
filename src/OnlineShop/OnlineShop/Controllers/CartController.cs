@@ -4,16 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OnlineShop.Models.Db;
 using OnlineShop.Models.ViewModels;
+using OnlineShop.Services.Interfaces;
 
 namespace OnlineShop.Controllers;
 
 public class CartController : Controller
 {
     private readonly OnlineShopContext _context;
-
-    public CartController(OnlineShopContext context)
+    private readonly IVnPayService _vnPayService;
+    
+    public CartController(OnlineShopContext context, IVnPayService vnPayService)
     {
         _context = context;
+        _vnPayService = vnPayService;
     }
     
     // GET
@@ -245,6 +248,94 @@ public class CartController : Controller
         _context.SaveChanges();
         
         return Redirect("/Cart/RedirectToPayment?orderId=" + order.Id);
+        
+    }
+
+    [Authorize]
+    public IActionResult PaymentSuccess()
+    {
+        return View("Success");
+    }
+    
+    [Authorize]
+    public IActionResult PaymentFail()
+    {
+        return View();
+    }
+
+    [Authorize]
+    public IActionResult PaymentCallBack()
+    {
+        var response = _vnPayService.PaymentExecute(Request.Query);
+        if (response == null || response.VnPayResponseCode != "00")
+        {
+            TempData["Message"] = $"Thanh toán không thành công với {response.VnPayResponseCode}. Vui lòng thử lại.";
+            return RedirectToAction("PaymentFail");
+        }
+
+        try
+        {
+            // Cách 1: Nếu bạn lưu OrderId trong vnp_OrderInfo
+            // Parse OrderId từ OrderInfo thay vì từ TxnRef
+            var orderInfo = response.OrderDescription; // hoặc response.OrderInfo
+            var orderIdString = ExtractOrderIdFromDescription(orderInfo);
+        
+            if (!int.TryParse(orderIdString, out int orderId))
+            {
+                TempData["Message"] = "Không thể xác định đơn hàng.";
+                return RedirectToAction("PaymentFail");
+            }
+
+            var order = _context.Orders.FirstOrDefault(x => x.Id == orderId);
+            if (order == null)
+            {
+                TempData["Message"] = "Đơn hàng không tồn tại.";
+                return RedirectToAction("PaymentFail");
+            }
+
+            order.TransId = response.TransactionId;
+            order.Status = "Completed";
+            _context.Update(order);
+            _context.SaveChanges();
+
+            TempData["Message"] = "Thanh toán thành công. Cảm ơn bạn đã mua hàng tại cửa hàng của chúng tôi.";
+            // Xóa giỏ hàng sau khi thanh toán thành công
+            Response.Cookies.Delete("Cart");
+            ViewData["Order"] = order;
+            return RedirectToAction("PaymentSuccess");
+        }
+        catch (Exception ex)
+        {
+            TempData["Message"] = "Có lỗi xảy ra khi xử lý thanh toán.";
+            return RedirectToAction("PaymentFail");
+        }
+    }
+    
+    private string ExtractOrderIdFromDescription(string orderInfo)
+    {
+        // Ví dụ: "Thanh toan don hang 123" -> return "123"
+        if (string.IsNullOrEmpty(orderInfo))
+            return null;
+        
+        var parts = orderInfo.Split(' ');
+        return parts.LastOrDefault();
+    }
+    
+    [Authorize]
+    public IActionResult RedirectToPayment(int orderId)
+    {
+        var order = _context.Orders.FirstOrDefault(x => x.Id == orderId);
+        var vnpayModel = new VnPaymentRequestModel()
+        {
+            Amount = order.Total ?? 0,
+            CreatedDate = DateTime.Now,
+            Description = "Thanh toán đơn hàng " + orderId,
+            OrderId = orderId.ToString(),
+            FullName = $"{order.FirstName} {order.LastName}",
+        };
+        
+        
+        return Redirect(_vnPayService.CreatePaymentUrl(HttpContext, vnpayModel));
     }
     
 }

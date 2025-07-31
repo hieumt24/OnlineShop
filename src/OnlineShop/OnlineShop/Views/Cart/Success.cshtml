@@ -1,0 +1,331 @@
+﻿@{
+    ViewData["Title"] = "Thanh toán thành công";
+    var order = ViewData["Order"] as Order;
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+    
+    .success-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        animation: pulse 2s infinite;
+    }
+    
+    .order-detail-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        transform: translateY(-2px);
+    }
+    
+    .detail-row {
+        padding: 12px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: #f1c40f;
+        animation: confetti-fall 3s linear infinite;
+    }
+    
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #28a745;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -23px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #28a745;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #28a745;
+    }
+</style>
+
+<!-- Confetti Animation -->
+<div id="confetti-container"></div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Card -->
+            <div class="success-card p-5 text-center mb-4">
+                <div class="success-icon">
+                    <i class="fas fa-check text-white fs-2"></i>
+                </div>
+                
+                <h1 class="text-success fw-bold mb-3">Thanh toán thành công!</h1>
+                <p class="text-muted fs-5 mb-4">
+                    @if (TempData["Message"] != null)
+                    {
+                        @TempData["Message"]
+                    }
+                    else
+                    {
+                        <text>Cảm ơn bạn đã mua hàng tại cửa hàng của chúng tôi.<br>
+                        Đơn hàng của bạn đã được xác nhận và đang được xử lý.</text>
+                    }
+                </p>
+                
+                <!-- Order Status Timeline -->
+                <div class="row mt-4">
+                    <div class="col-md-8 mx-auto">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <small class="text-success fw-semibold">
+                                    <i class="fas fa-check-circle me-2"></i>Đặt hàng thành công
+                                </small>
+                            </div>
+                            <div class="timeline-item">
+                                <small class="text-success fw-semibold">
+                                    <i class="fas fa-credit-card me-2"></i>Thanh toán hoàn tất
+                                </small>
+                            </div>
+                            <div class="timeline-item">
+                                <small class="text-muted">
+                                    <i class="fas fa-box me-2"></i>Đang chuẩn bị hàng
+                                </small>
+                            </div>
+                            <div class="timeline-item">
+                                <small class="text-muted">
+                                    <i class="fas fa-shipping-fast me-2"></i>Đang giao hàng
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            @if (order != null)
+            {
+                <!-- Order Details Card -->
+                <div class="order-detail-card p-4 mb-4">
+                    <h4 class="fw-bold mb-4">
+                        <i class="fas fa-receipt text-primary me-2"></i>
+                        Chi tiết đơn hàng
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted">Mã đơn hàng:</span>
+                                <span class="fw-semibold">#DH@order.Id.ToString("D6")</span>
+                            </div>
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted">Ngày đặt:</span>
+                                <span class="fw-semibold">@order.CreateDate?.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted">Phương thức thanh toán:</span>
+                                <span class="fw-semibold">
+                                    <i class="fab fa-cc-visa text-primary me-1"></i>
+                                    VNPay
+                                </span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(order.TransId))
+                            {
+                                <div class="detail-row d-flex justify-content-between">
+                                    <span class="text-muted">Mã giao dịch:</span>
+                                    <span class="fw-semibold">@order.TransId</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted">Khách hàng:</span>
+                                <span class="fw-semibold">@order.FirstName @order.LastName</span>
+                            </div>
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted">Trạng thái:</span>
+                                <span class="badge bg-success">@order.Status</span>
+                            </div>
+                            <div class="detail-row d-flex justify-content-between">
+                                <span class="text-muted fs-5">Tổng tiền:</span>
+                                <span class="fw-bold text-success fs-5">@((order.Total ?? 0).ToString("N0")) VNĐ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Info Card -->
+                <div class="order-detail-card p-4 mb-4">
+                    <h4 class="fw-bold mb-4">
+                        <i class="fas fa-truck text-info me-2"></i>
+                        Thông tin giao hàng
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="fas fa-user text-muted me-2"></i>
+                                <strong>@order.FirstName @order.LastName</strong>
+                            </p>
+                            @if (!string.IsNullOrEmpty(order.Phone))
+                            {
+                                <p class="mb-2">
+                                    <i class="fas fa-phone text-muted me-2"></i>
+                                    @order.Phone
+                                </p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(order.Email))
+                            {
+                                <p class="mb-2">
+                                    <i class="fas fa-envelope text-muted me-2"></i>
+                                    @order.Email
+                                </p>
+                            }
+                            @if (!string.IsNullOrEmpty(order.Address))
+                            {
+                                <p class="mb-0">
+                                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                    @order.Address
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="@Url.Action("DownloadInvoice", "Order", new { id = order?.Id })" class="btn btn-primary w-100">
+                            <i class="fas fa-download me-2"></i>
+                            Tải hóa đơn
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("TrackOrder", "Order", new { id = order?.Id })" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-eye me-2"></i>
+                            Theo dõi đơn hàng
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-home me-2"></i>
+                            Về trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Support Info -->
+            <div class="text-center mt-5">
+                <div class="alert alert-info border-0" style="background: rgba(13, 202, 240, 0.1); border-radius: 15px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Cần hỗ trợ?</strong> Liên hệ với chúng tôi qua hotline: 
+                    <a href="tel:1900123456" class="text-decoration-none fw-bold">1900 123 456</a>
+                    hoặc email: 
+                    <a href="mailto:support@shop.com" class="text-decoration-none fw-bold">support@shop.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Confetti Animation
+    function createConfetti() {
+        const confettiContainer = document.getElementById('confetti-container');
+        const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#e67e22'];
+        
+        for (let i = 0; i < 50; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confettiContainer.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }, i * 100);
+        }
+    }
+    
+    // Run confetti animation on page load
+    window.addEventListener('load', () => {
+        createConfetti();
+        
+        // Run again after 3 seconds
+        setTimeout(createConfetti, 3000);
+    });
+</script>
