@@ -138,16 +138,10 @@ class ProductSignalR {
     }
 
     updateStatistics(data) {
-        const totalProductsElement = document.getElementById('totalProducts');
-        const activeUsersElement = document.getElementById('activeUsers');
-
-        if (totalProductsElement) {
-            totalProductsElement.textContent = data.TotalProducts || 0;
-        }
-
-        if (activeUsersElement) {
-            activeUsersElement.textContent = data.ActiveUsers || 1;
-        }
+        const tp = document.getElementById('totalProducts');
+        if (tp) tp.textContent = data.totalProducts ?? 0;   // dùng camelCase
+        const au = document.getElementById('activeUsers');
+        if (au) au.textContent = data.activeUsers ?? 1;
     }
 
     updateActiveUsers(count) {
