@@ -133,34 +133,99 @@
     </div>
 </div>
 <!--shop  area end-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+  <script>
+  // 1) Khởi tạo connection
+  const shopConnection = new signalR.HubConnectionBuilder()
+    .withUrl("/productHub")
+    .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
+    .build();
 
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-    <script>
-    // 1) Khởi tạo connection tới ProductHub
-    const shopConnection = new signalR.HubConnectionBuilder()
-      .withUrl("/productHub")
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information)
-      .build();
+  // 2) Đăng ký handler
+  shopConnection.on("ProductCreated", data => {
+    console.log("-> New product for shop:", data);
+    addProductCard(data);
+    recalcShopStats();
+  });
 
-    // 2) Đăng ký các sự kiện realtime
-    shopConnection.on("ProductCreated", data => {
-      console.log("Shop received new product:", data);
-      addProductCard(data);
-    });
-    shopConnection.on("ProductUpdated", data => {
-      console.log("Shop received updated product:", data);
-      updateProductCard(data);
-    });
-    shopConnection.on("ProductDeleted", data => {
-      console.log("Shop received deleted product:", data);
-      removeProductCard(data.id);
-    });
+  shopConnection.on("ProductUpdated", data => {
+    console.log("-> Updated product for shop:", data);
+    updateProductCard(data);
+  });
 
-    // 3) Bắt đầu kết nối
-    shopConnection.start()
-      .then(() => console.log("SignalR shop connected"))
-      .catch(err => console.error(err));
-  </script>
-}
+  shopConnection.on("ProductDeleted", data => {
+    console.log("-> Deleted product for shop:", data);
+    removeProductCard(data.id);
+    recalcShopStats();
+  });
+
+  // 3) Start
+  shopConnection.start()
+    .then(() => console.log("Shop SignalR connected"))
+    .catch(err => console.error(err));
+
+  // 4) Các helper để thao tác DOM
+  function addProductCard(p) {
+    // p = { id, title, description, price, discount, qty, tags, imageName, createdAt }
+    const wrapper = document.querySelector(".shop_wrapper");
+    if (!wrapper) return;
+
+    const col = document.createElement("div");
+    col.className = "col-lg-4 col-md-4 col-sm-6 col-6 product-card";
+    col.dataset.productId = p.id;
+    col.innerHTML = `
+      <div class="single_product">
+        <div class="product_thumb">
+          <a href="/products/productdetails/${p.id}">
+            <img class="primary_img" src="/images/banners/${p.imageName}" alt="${p.title}">
+          </a>
+          ${p.discount > 0
+            ? `<div class="product_label"><span>-${Math.round(p.discount/p.price*100)}%</span></div>`
+            : ``}
+        </div>
+        <div class="product_content grid_content text-center">
+          <h4 class="product_name"><a href="/products/productdetails/${p.id}">${p.title}</a></h4>
+          <div class="price_box">
+            ${p.discount > 0
+              ? `<span class="current_price">${formatVND(p.price - p.discount)}</span>
+                 <span class="old_price">${formatVND(p.price)}</span>`
+              : `<span class="current-price">${formatVND(p.price)}</span>`}
+          </div>
+          <div class="add_to_cart">
+            <a class="btn btn-primary" onclick="updateCart(${p.id},1)">Add To Cart</a>
+          </div>
+        </div>
+      </div>`;
+    // thêm lên đầu
+    wrapper.prepend(col);
+  }
+
+  function updateProductCard(p) {
+    const col = document.querySelector(`.shop_wrapper [data-product-id="${p.id}"]`);
+    if (!col) return;
+    col.querySelector(".primary_img").src = `/images/banners/${p.imageName}`;
+    col.querySelector(".product_name a").textContent = p.title;
+    // cập nhật giá
+    if (p.discount > 0) {
+      col.querySelector(".current_price").textContent = formatVND(p.price - p.discount);
+      col.querySelector(".old_price").textContent = formatVND(p.price);
+    } else {
+      col.querySelector(".current-price").textContent = formatVND(p.price);
+    }
+  }
+
+  function removeProductCard(id) {
+    const col = document.querySelector(`.shop_wrapper [data-product-id="${id}"]`);
+    if (col) col.remove();
+  }
+
+  function recalcShopStats() {
+    const countEl = document.querySelector(".page_amount span");
+    if (countEl) countEl.textContent = document.querySelectorAll(".shop_wrapper .product-card").length;
+  }
+
+  function formatVND(x) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(x);
+  }
+</script>
