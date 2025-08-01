@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using OnlineShop.Hubs;
 using OnlineShop.Models.Db;
 
 namespace OnlineShop.Areas.Admin.Controllers
@@ -8,10 +10,12 @@ namespace OnlineShop.Areas.Admin.Controllers
     public class ProductsController : Controller
     {
         private readonly OnlineShopContext _context;
+        private readonly IHubContext<ProductHub> _hubContext;
 
-        public ProductsController(OnlineShopContext context)
+        public ProductsController(OnlineShopContext context, IHubContext<ProductHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: Admin/Products
@@ -27,15 +31,22 @@ namespace OnlineShop.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            
+
             var directory = Directory.GetCurrentDirectory();
             var path = directory + "\\wwwroot\\images\\banners\\" + gallery.ImageName;
             if (System.IO.File.Exists(path))
             {
                 System.IO.File.Delete(path);
             }
+
             _context.ProductGaleries.Remove(gallery);
             _context.SaveChanges();
+            _hubContext.Clients.All.SendAsync("GalleryDeleted", new
+            {
+                GalleryId = id,
+                ProductId = gallery.ProductId
+            });
+
             return Redirect("edit/" + gallery.ProductId);
         }
 
@@ -68,7 +79,9 @@ namespace OnlineShop.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,FullDesc,Price,Discount,ImageName,Qty,Tags,VideoUrl")] Product product, IFormFile? MainImage, IFormFile[]? GalleryImages)
+        public async Task<IActionResult> Create(
+            [Bind("Id,Title,Description,FullDesc,Price,Discount,ImageName,Qty,Tags,VideoUrl")] Product product,
+            IFormFile? MainImage, IFormFile[]? GalleryImages)
         {
             if (ModelState.IsValid)
             {
@@ -85,7 +98,7 @@ namespace OnlineShop.Areas.Admin.Controllers
                         MainImage.CopyTo(stream);
                     }
                 }
-                
+
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 // =========== saving gallery images =================
@@ -105,13 +118,29 @@ namespace OnlineShop.Areas.Admin.Controllers
                         {
                             item.CopyTo(stream);
                         }
+
                         //----------------------
                         _context.ProductGaleries.Add(newGallery);
                     }
                 }
+
                 await _context.SaveChangesAsync();
+
+                await _hubContext.Clients.All.SendAsync("ProductCreated", new
+                {
+                    Id = product.Id,
+                    Title = product.Title,
+                    Description = product.Description,
+                    Price = product.Price,
+                    ImageName = product.ImageName,
+                    CreatedAt = DateTime.Now
+                });
+
+                // Refresh statistics
+                await RefreshStatisticsForAllClients();
                 return RedirectToAction(nameof(Index));
             }
+
             return View(product);
         }
 
@@ -128,11 +157,10 @@ namespace OnlineShop.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
             var galeries = _context.ProductGaleries.Where(x => x.ProductId == id).ToList();
             ViewData["gallery"] = galeries;
             return View(product);
-            
-           
         }
 
         // POST: Admin/Products/Edit/5
@@ -140,7 +168,9 @@ namespace OnlineShop.Areas.Admin.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,FullDesc,Price,Discount,ImageName,Qty,Tags,VideoUrl")] Product product, IFormFile? MainImage, IFormFile[]? GalleryImages)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("Id,Title,Description,FullDesc,Price,Discount,ImageName,Qty,Tags,VideoUrl")] Product product,
+            IFormFile? MainImage, IFormFile[]? GalleryImages)
         {
             if (id != product.Id)
             {
@@ -172,11 +202,11 @@ namespace OnlineShop.Areas.Admin.Controllers
                         foreach (var item in GalleryImages)
                         {
                             var imageItem = Guid.NewGuid() + Path.GetExtension(item.FileName);
-                            
+
                             //
                             string directory = Directory.GetCurrentDirectory();
                             string path = directory + "\\wwwroot\\images\\banners\\" + imageItem;
-                            using(var stream = new FileStream(path, FileMode.Create))
+                            using (var stream = new FileStream(path, FileMode.Create))
                             {
                                 item.CopyTo(stream);
                             }
@@ -184,12 +214,22 @@ namespace OnlineShop.Areas.Admin.Controllers
                             var galleryItem = new ProductGalery();
                             galleryItem.ImageName = imageItem;
                             galleryItem.ProductId = product.Id;
-                            
+
                             _context.ProductGaleries.Add(galleryItem);
                         }
                     }
+
                     _context.Update(product);
                     await _context.SaveChangesAsync();
+                    await _hubContext.Clients.All.SendAsync("ProductUpdated", new
+                    {
+                        Id = product.Id,
+                        Title = product.Title,
+                        Description = product.Description,
+                        Price = product.Price,
+                        ImageName = product.ImageName,
+                        UpdatedAt = DateTime.Now
+                    });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -202,8 +242,10 @@ namespace OnlineShop.Areas.Admin.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(product);
         }
 
@@ -241,6 +283,7 @@ namespace OnlineShop.Areas.Admin.Controllers
                 {
                     System.IO.File.Delete(mainImagePath);
                 }
+
                 // delete gallery images
                 var galleries = _context.ProductGaleries.Where(x => x.ProductId == id).ToList();
                 if (galleries.Count > 0)
@@ -253,20 +296,92 @@ namespace OnlineShop.Areas.Admin.Controllers
                             System.IO.File.Delete(galleryImagePath);
                         }
                     }
+
                     _context.ProductGaleries.RemoveRange(galleries);
                 }
-                
+
                 //============================================
                 _context.Products.Remove(product);
             }
 
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("ProductDeleted", new
+            {
+                Id = id,
+                Title = product.Title,
+                DeletedAt = DateTime.Now
+            });
+            await RefreshStatisticsForAllClients();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductsRealtime()
+        {
+            var products = await _context.Products.ToListAsync();
+            return Json(products);
+        }
+
+        // API endpoint để lấy thông tin sản phẩm theo ID
+        [HttpGet]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return Json(product);
+        }
+
+        // API endpoint để cập nhật số lượng sản phẩm realtime
+        [HttpPost]
+        public async Task<IActionResult> UpdateQuantity(int id, int quantity)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.Qty = quantity;
+            _context.Update(product);
+            await _context.SaveChangesAsync();
+
+            // Thông báo realtime về việc cập nhật số lượng
+            await _hubContext.Clients.All.SendAsync("QuantityUpdated", new
+            {
+                ProductId = id,
+                NewQuantity = quantity,
+                UpdatedAt = DateTime.Now
+            });
+
+            return Json(new { success = true, message = "Quantity updated successfully" });
+        }
+
+        private async Task RefreshStatisticsForAllClients()
+        {
+            try
+            {
+                var totalProducts = await _context.Products.CountAsync();
+                await _hubContext.Clients.All.SendAsync("StatisticsUpdated", new
+                {
+                    TotalProducts = totalProducts,
+                    ActiveUsers = 1,
+                    Status = "Connected"
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                Console.WriteLine($"Error refreshing statistics: {ex.Message}");
+            }
         }
     }
 }

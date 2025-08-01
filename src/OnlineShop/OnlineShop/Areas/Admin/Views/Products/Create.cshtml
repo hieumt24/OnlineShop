@@ -1,75 +1,728 @@
 @model OnlineShop.Models.Db.Product
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Product";
+    var userName = User.Identity?.Name ?? "Anonymous";
 }
 
-<h1>Create</h1>
+<!-- Connection Status Indicator -->
+<div id="connectionStatus" class="connection-status disconnected">
+    <i class="fas fa-circle"></i> Disconnected
+</div>
 
-<h4>Product</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+<!-- Real-time notifications will appear here -->
+<div id="notificationContainer" class="notification-container"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1><i class="fas fa-plus-circle"></i> Create Product</h1>
+                    <p class="text-muted">Add a new product to your inventory</p>
+                </div>
+                <div>
+                    <span class="realtime-badge">
+                        <i class="fas fa-broadcast-tower"></i> Real-time
+                    </span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="progress-steps">
+                <div class="step active">
+                    <span class="step-number">1</span>
+                    <span class="step-title">Basic Info</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span class="step-title">Images</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span class="step-title">Additional</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="FullDesc" class="control-label"></label>
-                @* <input asp-for="FullDesc" class="form-control" /> *@
-                <textarea asp-for="FullDesc" class="form-control" rows="4"></textarea>
-                <span asp-validation-for="FullDesc" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit"></i> Product Information</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data" id="productForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger alert alert-danger" style="display: none;"></div>
+
+                        <!-- Step 1: Basic Information -->
+                        <div class="form-step active" data-step="1">
+                            <h6 class="text-primary mb-3"><i class="fas fa-info-circle"></i> Basic Information</h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Title" class="form-label">
+                                            <i class="fas fa-tag"></i> Product Title *
+                                        </label>
+                                        <input asp-for="Title" class="form-control form-control-lg" placeholder="Enter product title..." />
+                                        <span asp-validation-for="Title" class="text-danger"></span>
+                                        <div class="form-text">Choose a clear, descriptive title</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Price" class="form-label">
+                                            <i class="fas fa-dollar-sign"></i> Price *
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₫</span>
+                                            <input asp-for="Price" class="form-control" placeholder="0" />
+                                        </div>
+                                        <span asp-validation-for="Price" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Description" class="form-label">
+                                    <i class="fas fa-align-left"></i> Short Description
+                                </label>
+                                <input asp-for="Description" class="form-control" placeholder="Brief product description..." />
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="FullDesc" class="form-label">
+                                    <i class="fas fa-file-alt"></i> Full Description
+                                </label>
+                                <textarea asp-for="FullDesc" class="form-control" rows="5" placeholder="Detailed product description..."></textarea>
+                                <span asp-validation-for="FullDesc" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Discount" class="form-label">
+                                            <i class="fas fa-percent"></i> Discount (%)
+                                        </label>
+                                        <input asp-for="Discount" class="form-control" placeholder="0" min="0" max="100" />
+                                        <span asp-validation-for="Discount" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Qty" class="form-label">
+                                            <i class="fas fa-boxes"></i> Quantity *
+                                        </label>
+                                        <div class="quantity-realtime">
+                                            <input asp-for="Qty" class="form-control" placeholder="0" min="0" />
+                                            <i class="fas fa-sync sync-icon" style="display: none;"></i>
+                                        </div>
+                                        <span asp-validation-for="Qty" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-calculator"></i> Final Price
+                                        </label>
+                                        <div class="form-control bg-light" id="finalPrice">₫0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary next-step">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Images -->
+                        <div class="form-step" data-step="2">
+                            <h6 class="text-primary mb-3"><i class="fas fa-images"></i> Product Images</h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-image"></i> Main Image *
+                                        </label>
+                                        <div class="image-upload-area" id="mainImageArea">
+                                            <input type="file" name="MainImage" class="form-control" accept="image/*" id="mainImageInput" />
+                                            <div class="upload-placeholder">
+                                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                                <p class="text-muted">Click to upload main image</p>
+                                                <small class="text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                                            </div>
+                                            <div class="image-preview" id="mainImagePreview" style="display: none;">
+                                                <img src="" alt="Preview" class="preview-image" />
+                                                <button type="button" class="btn btn-sm btn-danger remove-image">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <span asp-validation-for="ImageName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-images"></i> Gallery Images
+                                        </label>
+                                        <div class="image-upload-area" id="galleryArea">
+                                            <input type="file" name="GalleryImages" multiple class="form-control" accept="image/*" id="galleryInput" />
+                                            <div class="upload-placeholder">
+                                                <i class="fas fa-images fa-3x text-muted"></i>
+                                                <p class="text-muted">Click to upload gallery images</p>
+                                                <small class="text-muted">You can select multiple images</small>
+                                            </div>
+                                        </div>
+                                        <div class="gallery-preview mt-3" id="galleryPreview"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary prev-step">
+                                    <i class="fas fa-arrow-left"></i> Previous
+                                </button>
+                                <button type="button" class="btn btn-primary next-step">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Additional Information -->
+                        <div class="form-step" data-step="3">
+                            <h6 class="text-primary mb-3"><i class="fas fa-cogs"></i> Additional Information</h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Tags" class="form-label">
+                                            <i class="fas fa-tags"></i> Tags
+                                        </label>
+                                        <input asp-for="Tags" class="form-control" placeholder="tag1, tag2, tag3..." />
+                                        <span asp-validation-for="Tags" class="text-danger"></span>
+                                        <div class="form-text">Separate tags with commas</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="VideoUrl" class="form-label">
+                                            <i class="fas fa-video"></i> Video URL
+                                        </label>
+                                        <input asp-for="VideoUrl" class="form-control" placeholder="https://youtube.com/watch?v=..." />
+                                        <span asp-validation-for="VideoUrl" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary prev-step">
+                                    <i class="fas fa-arrow-left"></i> Previous
+                                </button>
+                                <div>
+                                    <button type="button" class="btn btn-success me-2" id="previewBtn">
+                                        <i class="fas fa-eye"></i> Preview
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fas fa-save"></i> Create Product
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Preview Card -->
+            <div class="card shadow-sm mb-4" id="previewCard">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-eye"></i> Live Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div class="product-preview">
+                        <div class="preview-image-container mb-3">
+                            <img src="/images/placeholder.jpg" alt="Preview" class="img-fluid rounded" id="previewMainImage" />
+                        </div>
+                        <h5 class="preview-title">Product Title</h5>
+                        <p class="preview-description text-muted">Product description will appear here...</p>
+                        <div class="price-info">
+                            <span class="preview-price h4 text-primary">₫0</span>
+                            <span class="preview-discount text-success ms-2"></span>
+                        </div>
+                        <div class="preview-quantity text-muted">
+                            <i class="fas fa-boxes"></i> Quantity: <span>0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Discount" class="control-label"></label>
-                <input asp-for="Discount" class="form-control" />
-                <span asp-validation-for="Discount" class="text-danger"></span>
+
+            <!-- Real-time Activity -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-activity"></i> Real-time Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div id="activityFeed" class="activity-feed">
+                        <div class="activity-item">
+                            <i class="fas fa-circle text-success"></i>
+                            <span>Connected to real-time updates</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="ImageName" class="control-label"></label>
-                <input asp-for="ImageName" type="file" name="MainImage"  class="form-control" />
-                <span asp-validation-for="ImageName" class="text-danger"></span>
+
+            <!-- Quick Stats -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item d-flex justify-content-between">
+                        <span>Total Products:</span>
+                        <span class="badge bg-primary" id="totalProducts">0</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between">
+                        <span>Active Users:</span>
+                        <span class="badge bg-success" id="activeUsers">1</span>
+                    </div>
+                    <div class="stat-item d-flex justify-content-between">
+                        <span>Status:</span>
+                        <span class="badge bg-info" id="connectionBadge">Connected</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="control-label">Gallery</label>
-                <input asp-for="ImageName" type="file" name="GalleryImages" multiple class="form-control" />
-            </div>
-            <div class="form-group">
-                <label asp-for="Qty" class="control-label"></label>
-                <input asp-for="Qty" class="form-control" />
-                <span asp-validation-for="Qty" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Tags" class="control-label"></label>
-                <input asp-for="Tags" class="form-control" />
-                <span asp-validation-for="Tags" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="VideoUrl" class="control-label"></label>
-                <input asp-for="VideoUrl" class="form-control" />
-                <span asp-validation-for="VideoUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
 </div>
 
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-3">Creating product...</p>
+    </div>
+</div>
+
+<!-- Hidden field for user name -->
+<input type="hidden" data-username="@userName" />
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="~/lib/js/product-signalr.js"></script>
+
+    <style>
+        /* Inline styles for the view */
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.connected {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .connection-status.connecting {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 2rem;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 100%;
+            width: 4rem;
+            height: 2px;
+            background-color: #dee2e6;
+        }
+
+        .step.active:not(:last-child)::after {
+            background-color: #007bff;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #dee2e6;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .step.active .step-number {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .step-title {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .step.active .step-title {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .image-upload-area {
+            position: relative;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .image-upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        .image-upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .gallery-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .gallery-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .realtime-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .activity-feed {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+            font-size: 0.875rem;
+        }
+
+        .activity-item i {
+            margin-right: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .field-updated {
+            border: 2px solid #007bff !important;
+            background-color: #e7f3ff !important;
+            animation: fieldPulse 1s ease-out;
+        }
+
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            let currentStep = 1;
+            const totalSteps = 3;
+
+            // Step navigation
+            $('.next-step').click(function() {
+                if (currentStep < totalSteps) {
+                    if (validateStep(currentStep)) {
+                        currentStep++;
+                        showStep(currentStep);
+                    }
+                }
+            });
+
+            $('.prev-step').click(function() {
+                if (currentStep > 1) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+
+            function showStep(step) {
+                $('.form-step').removeClass('active');
+                $(`.form-step[data-step="${step}"]`).addClass('active');
+
+                $('.progress-steps .step').removeClass('active');
+                for (let i = 1; i <= step; i++) {
+                    $(`.progress-steps .step:nth-child(${i})`).addClass('active');
+                }
+            }
+
+            function validateStep(step) {
+                let isValid = true;
+                const currentStepDiv = $(`.form-step[data-step="${step}"]`);
+
+                currentStepDiv.find('input[required], select[required], textarea[required]').each(function() {
+                    if (!this.value.trim()) {
+                        $(this).addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                if (!isValid) {
+                    window.productSignalR?.showNotification('Please fill in all required fields', 'warning');
+                }
+
+                return isValid;
+            }
+
+            // Image preview
+            $('#mainImageInput').change(function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#mainImagePreview img').attr('src', e.target.result);
+                        $('#mainImageArea .upload-placeholder').hide();
+                        $('#mainImagePreview').show();
+                        $('#previewMainImage').attr('src', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Gallery preview
+            $('#galleryInput').change(function() {
+                const files = this.files;
+                $('#galleryPreview').empty();
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const galleryItem = $(`
+                            <div class="gallery-item">
+                                <img src="${e.target.result}" alt="Gallery ${i + 1}" />
+                                <button type="button" class="btn btn-sm btn-danger remove-gallery-item">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `);
+                        $('#galleryPreview').append(galleryItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Remove image buttons
+            $(document).on('click', '.remove-image', function() {
+                $('#mainImageInput').val('');
+                $('#mainImagePreview').hide();
+                $('#mainImageArea .upload-placeholder').show();
+                $('#previewMainImage').attr('src', '/images/placeholder.jpg');
+            });
+
+            $(document).on('click', '.remove-gallery-item', function() {
+                $(this).parent().remove();
+            });
+
+            // Live preview updates
+            $('#Title').on('input', function() {
+                $('.preview-title').text(this.value || 'Product Title');
+            });
+
+            $('#Description').on('input', function() {
+                $('.preview-description').text(this.value || 'Product description will appear here...');
+            });
+
+            $('#Price, #Discount').on('input', function() {
+                calculateAndShowPrice();
+            });
+
+            $('#Qty').on('input', function() {
+                $('.preview-quantity span').text(this.value || '0');
+            });
+
+            function calculateAndShowPrice() {
+                const price = parseFloat($('#Price').val()) || 0;
+                const discount = parseFloat($('#Discount').val()) || 0;
+                const finalPrice = price - (price * discount / 100);
+
+                $('#finalPrice').text('₫' + finalPrice.toLocaleString());
+                $('.preview-price').text('₫' + finalPrice.toLocaleString());
+
+                if (discount > 0) {
+                    $('.preview-discount').text(`-${discount}%`).show();
+                } else {
+                    $('.preview-discount').hide();
+                }
+            }
+
+            // Form submission
+            $('#productForm').submit(function(e) {
+                e.preventDefault();
+
+                if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+                    return false;
+                }
+
+                $('#loadingOverlay').show();
+
+                // Notify others about the creation process
+                if (window.productSignalR?.isConnected) {
+                    window.productSignalR.connection.invoke("NotifyLoading", "Creating new product...");
+                }
+
+                // Submit the form
+                setTimeout(() => {
+                    this.submit();
+                }, 1000);
+            });
+
+            // Connection status updates
+            if (window.productSignalR) {
+                window.productSignalR.connection.on("Connected", function() {
+                    $('#connectionStatus').removeClass('disconnected connecting').addClass('connected');
+                    $('#connectionStatus').html('<i class="fas fa-circle"></i> Connected');
+                    $('#connectionBadge').removeClass('bg-danger bg-warning').addClass('bg-success').text('Connected');
+                });
+
+                window.productSignalR.connection.onreconnecting(function() {
+                    $('#connectionStatus').removeClass('connected disconnected').addClass('connecting');
+                    $('#connectionStatus').html('<i class="fas fa-circle"></i> Connecting...');
+                    $('#connectionBadge').removeClass('bg-success bg-danger').addClass('bg-warning').text('Connecting');
+                });
+
+                window.productSignalR.connection.onclose(function() {
+                    $('#connectionStatus').removeClass('connected connecting').addClass('disconnected');
+                    $('#connectionStatus').html('<i class="fas fa-circle"></i> Disconnected');
+                    $('#connectionBadge').removeClass('bg-success bg-warning').addClass('bg-danger').text('Disconnected');
+                });
+            }
+        });
+    </script>
+}

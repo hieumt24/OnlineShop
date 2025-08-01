@@ -1,0 +1,19 @@
+{
+  "version": "3.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "bootstrap@5.3.7",
+      "destination": "wwwroot/lib/bootstrap-5.3.7/"
+    },
+    {
+      "library": "mdbootstrap@4.20.0",
+      "destination": "wwwroot/lib/mdbootstrap/"
+    },
+    {
+      "provider": "unpkg",
+      "library": "@microsoft/signalr@8.0.7",
+      "destination": "wwwroot/microsoft/signalr/"
+    }
+  ]
+}

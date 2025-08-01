@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using OnlineShop.Hubs;
 using OnlineShop.Models.Db;
 using OnlineShop.Services;
 using OnlineShop.Services.Interfaces;
@@ -10,10 +11,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<OnlineShopContext>(options =>
 {
     options.UseSqlServer(connectionString);
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:36013/", "http://localhost:5000") // Thay đổi theo domain của bạn
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -36,6 +49,16 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCors("SignalRCorsPolicy");
+app.MapHub<ProductHub>("/productHub", options =>
+{
+    // Cấu hình transport options
+    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets 
+                         | Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+    
+    // Cấu hình close timeout
+    options.CloseOnAuthenticationExpiration = true;
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
