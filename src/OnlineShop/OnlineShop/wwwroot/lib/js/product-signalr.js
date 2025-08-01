@@ -70,9 +70,26 @@ class ProductSignalR {
             this.addActivityItem(`${data.UserName || 'User'} disconnected`, 'warning');
         });
 
-        this.connection.on("ProductCreated", (data) => {
-            this.addActivityItem(`New product created: ${data.Title}`, 'success');
-            this.showNotification(`Product "${data.Title}" was created`, 'success');
+        this.connection.on("ProductCreated", data => {
+            // Thông báo
+            this.addActivityItem(`New product created: ${data.title}`, 'success');
+            this.showNotification(`Product "${data.title}" was created`, 'success');
+
+            // Nếu đang ở trang Index, chèn row mới
+            if (typeof addProductRow === 'function') {
+                addProductRow({
+                    Id:          data.id,
+                    Title:       data.title,
+                    Description: data.description,
+                    Price:       data.price,
+                    Discount:    data.discount,
+                    Qty:         data.qty,
+                    Tags:        data.tags,
+                    ImageName:   data.imageName
+                });
+                // Cập nhật lại các badge thống kê
+                updateStats();
+            }
         });
 
         this.connection.on("ProductUpdated", (data) => {

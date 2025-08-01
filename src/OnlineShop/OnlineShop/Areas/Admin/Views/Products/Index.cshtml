@@ -391,6 +391,111 @@
     </style>
 
     <script>
+        function addProductRow(product) {
+            const imageHtml = product.ImageName ?
+                `<img src="/images/banners/${product.ImageName}" alt="${product.Title}" class="product-thumbnail" />` :
+                `<div class="no-image"><i class="fas fa-image"></i></div>`;
+
+            const discountHtml = product.Discount > 0 ?
+                `<span class="badge bg-success">${product.Discount}%</span>` :
+                `<span class="text-muted">-</span>`;
+
+            const qtyStatus = product.Qty == 0 ? 'bg-danger' : product.Qty <= 10 ? 'bg-warning' : 'bg-success';
+            const qtyStatusText = product.Qty == 0 ? 'Out' : product.Qty <= 10 ? 'Low' : 'OK';
+
+            const newRow = `
+                    <tr data-product-id="${product.Id}" class="product-row row-new">
+                        <td>
+                            <div class="product-image">${imageHtml}</div>
+                        </td>
+                        <td>
+                            <div class="product-title">
+                                <strong>${product.Title}</strong>
+                                ${product.Description ? `<small class="text-muted d-block">${product.Description}</small>` : ''}
+                            </div>
+                        </td>
+                        <td><span class="price">₫${product.Price.toLocaleString()}</span></td>
+                        <td>${discountHtml}</td>
+                        <td>
+                            <div class="quantity-display" data-product-id="${product.Id}">
+                                <span class="quantity-value">${product.Qty}</span>
+                                <span class="quantity-status badge ${qtyStatus} ms-2">${qtyStatusText}</span>
+                            </div>
+                        </td>
+                        <td>
+                            ${product.Tags ? product.Tags.split(',').slice(0, 2).map(tag => `<span class="badge bg-light text-dark me-1">${tag.trim()}</span>`).join('') : '<span class="text-muted">-</span>'}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/Admin/Products/Edit/${product.Id}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/Admin/Products/Details/${product.Id}" class="btn btn-sm btn-outline-info" title="Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="/Admin/Products/Delete/${product.Id}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+            $('#productsTableBody').prepend(newRow);
+
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                $(`.product-row[data-product-id="${product.Id}"]`).removeClass('row-new');
+            }, 500);
+        }
+
+
+        function updateStats() {
+            // Recalculate stats from current table data
+            const rows = $('.product-row');
+            const totalProducts = rows.length;
+            let inStock = 0, lowStock = 0, outOfStock = 0;
+
+            rows.each(function() {
+                const qty = parseInt($(this).find('.quantity-value').text()) || 0;
+                if (qty === 0) {
+                    outOfStock++;
+                } else if (qty <= 10) {
+                    lowStock++;
+                    inStock++;
+                } else {
+                    inStock++;
+                }
+            });
+
+            $('#totalProducts').text(totalProducts);
+            $('#inStockProducts').text(inStock);
+            $('#lowStockProducts').text(lowStock);
+            $('#outOfStockProducts').text(outOfStock);
+        }
+        $(function() {
+            // Khi tạo mới
+            window.productSignalR.connection.on("ProductCreated", data => {
+                console.log('New product payload:', data);
+                addProductRow(data);
+                updateStats();
+            });
+
+            // Tương tự cho update/delete nếu cần
+            window.productSignalR.connection.on("ProductUpdated", data => { /* ... */ });
+            window.productSignalR.connection.on("ProductDeleted", data => {
+                removeProductRow(data.id);
+                updateStats();
+            });
+
+            // Nút Refresh chỉ invoke SignalR
+            $('#refreshBtn').click(() => {
+                if (window.productSignalR.isConnected) {
+                    window.productSignalR.connection.invoke("RefreshStatistics")
+                        .catch(err => console.error(err));
+                }
+            });
+        });
         $(document).ready(function() {
             $(document).ready(function() {
                 // Log tất cả elements có id chứa statistics
@@ -470,63 +575,7 @@
                 filterProducts(filter);
             });
 
-            function addProductRow(product) {
-                const imageHtml = product.ImageName ?
-                    `<img src="/images/banners/${product.ImageName}" alt="${product.Title}" class="product-thumbnail" />` :
-                    `<div class="no-image"><i class="fas fa-image"></i></div>`;
-
-                const discountHtml = product.Discount > 0 ?
-                    `<span class="badge bg-success">${product.Discount}%</span>` :
-                    `<span class="text-muted">-</span>`;
-
-                const qtyStatus = product.Qty == 0 ? 'bg-danger' : product.Qty <= 10 ? 'bg-warning' : 'bg-success';
-                const qtyStatusText = product.Qty == 0 ? 'Out' : product.Qty <= 10 ? 'Low' : 'OK';
-
-                const newRow = `
-                    <tr data-product-id="${product.Id}" class="product-row row-new">
-                        <td>
-                            <div class="product-image">${imageHtml}</div>
-                        </td>
-                        <td>
-                            <div class="product-title">
-                                <strong>${product.Title}</strong>
-                                ${product.Description ? `<small class="text-muted d-block">${product.Description}</small>` : ''}
-                            </div>
-                        </td>
-                        <td><span class="price">₫${product.Price.toLocaleString()}</span></td>
-                        <td>${discountHtml}</td>
-                        <td>
-                            <div class="quantity-display" data-product-id="${product.Id}">
-                                <span class="quantity-value">${product.Qty}</span>
-                                <span class="quantity-status badge ${qtyStatus} ms-2">${qtyStatusText}</span>
-                            </div>
-                        </td>
-                        <td>
-                            ${product.Tags ? product.Tags.split(',').slice(0, 2).map(tag => `<span class="badge bg-light text-dark me-1">${tag.trim()}</span>`).join('') : '<span class="text-muted">-</span>'}
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="/Admin/Products/Edit/${product.Id}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="/Admin/Products/Details/${product.Id}" class="btn btn-sm btn-outline-info" title="Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="/Admin/Products/Delete/${product.Id}" class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-
-                $('#productsTableBody').prepend(newRow);
-
-                // Remove animation class after animation completes
-                setTimeout(() => {
-                    $(`.product-row[data-product-id="${product.Id}"]`).removeClass('row-new');
-                }, 500);
-            }
+            
 
             function updateProductRow(product) {
                 const row = $(`.product-row[data-product-id="${product.Id}"]`);
@@ -581,30 +630,6 @@
                 }
             }
 
-            function updateStats() {
-                // Recalculate stats from current table data
-                const rows = $('.product-row');
-                const totalProducts = rows.length;
-                let inStock = 0, lowStock = 0, outOfStock = 0;
-
-                rows.each(function() {
-                    const qty = parseInt($(this).find('.quantity-value').text()) || 0;
-                    if (qty === 0) {
-                        outOfStock++;
-                    } else if (qty <= 10) {
-                        lowStock++;
-                        inStock++;
-                    } else {
-                        inStock++;
-                    }
-                });
-
-                $('#totalProducts').text(totalProducts);
-                $('#inStockProducts').text(inStock);
-                $('#lowStockProducts').text(lowStock);
-                $('#outOfStockProducts').text(outOfStock);
-            }
-
             function filterProducts(filter) {
                 $('.product-row').show();
 
@@ -630,5 +655,6 @@
                 }
             }
         });
+    
     </script>
 }

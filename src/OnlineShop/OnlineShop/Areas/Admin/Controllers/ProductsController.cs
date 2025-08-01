@@ -126,14 +126,16 @@ namespace OnlineShop.Areas.Admin.Controllers
 
                 await _context.SaveChangesAsync();
 
-                await _hubContext.Clients.All.SendAsync("ProductCreated", new
-                {
-                    Id = product.Id,
-                    Title = product.Title,
-                    Description = product.Description,
-                    Price = product.Price,
-                    ImageName = product.ImageName,
-                    CreatedAt = DateTime.Now
+                await _hubContext.Clients.All.SendAsync("ProductCreated", new {
+                    id          = product.Id,
+                    title       = product.Title,
+                    description = product.Description,
+                    price       = product.Price,
+                    discount    = product.Discount,
+                    qty         = product.Qty,
+                    tags        = product.Tags,
+                    imageName   = product.ImageName,
+                    createdAt   = DateTime.Now
                 });
 
                 // Refresh statistics

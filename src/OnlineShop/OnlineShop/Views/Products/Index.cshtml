@@ -133,3 +133,34 @@
     </div>
 </div>
 <!--shop  area end-->
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+    // 1) Khởi tạo connection tới ProductHub
+    const shopConnection = new signalR.HubConnectionBuilder()
+      .withUrl("/productHub")
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    // 2) Đăng ký các sự kiện realtime
+    shopConnection.on("ProductCreated", data => {
+      console.log("Shop received new product:", data);
+      addProductCard(data);
+    });
+    shopConnection.on("ProductUpdated", data => {
+      console.log("Shop received updated product:", data);
+      updateProductCard(data);
+    });
+    shopConnection.on("ProductDeleted", data => {
+      console.log("Shop received deleted product:", data);
+      removeProductCard(data.id);
+    });
+
+    // 3) Bắt đầu kết nối
+    shopConnection.start()
+      .then(() => console.log("SignalR shop connected"))
+      .catch(err => console.error(err));
+  </script>
+}
